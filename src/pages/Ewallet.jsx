@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "../constants/api.js";
 import { toast } from "react-toastify";
 import {
   AUTH_STORAGE_KEY,
@@ -29,11 +29,7 @@ export default function Ewallet() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:5000/api/logout",
-        {},
-        { withCredentials: true },
-      );
+      await axios.post("/logout", {}, { withCredentials: true });
       toast("You have logged out successfully", {
         type: "success",
         autoClose: 1500,
@@ -48,8 +44,7 @@ export default function Ewallet() {
   const [userName, setUserName] = useState("User");
   const [balance, setBalance] = useState("0.00");
 
-  const API_URL =
-    "https://expenses-tracker-backend-ki3x.onrender.com/api/viewExpenses";
+  const API_URL = "/viewExpenses";
 
   const decodeTokenName = (token) => {
     try {
@@ -68,6 +63,24 @@ export default function Ewallet() {
       const token = getToken();
       const config = { withCredentials: true, headers: {} };
       if (token) config.headers.Authorization = `Bearer ${token}`;
+      // Prefer server-sourced wallet document which stores the balance
+      try {
+        const walletRes = await axios.post("/viewOwnwallet", {}, config);
+        const wallet = walletRes?.data?.data || walletRes?.data;
+        if (wallet && typeof wallet.balance !== "undefined") {
+          setBalance(
+            Number(wallet.balance).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+          );
+          return;
+        }
+      } catch (e) {
+        // fall back to computing from transactions below
+      }
+
+      // fallback: compute from /viewExpenses if wallet doc not available
       const res = await axios.post(API_URL, {}, config);
 
       let data = [];
@@ -121,13 +134,23 @@ export default function Ewallet() {
   };
 
   useEffect(() => {
+    // Require authentication for ewallet data
+    const token = getToken();
+    if (!token) {
+      try {
+        const current = window.location.pathname;
+        if (current !== "/") navigate("/", { replace: true });
+      } catch (e) {
+        navigate("/", { replace: true });
+      }
+      return;
+    }
+
     // set user name from token if available and fetch initial balance
-    // prefer stored display name from login
     const storedName = getUserName();
     if (storedName) setUserName(storedName);
     else {
-      const token = getToken();
-      const name = token ? decodeTokenName(token) : null;
+      const name = decodeTokenName(token);
       if (name) setUserName(name);
     }
     fetchBalance();

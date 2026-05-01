@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import sideImage from "../assets/log&sign.png";
-import axios from "axios";
+import axios from "../constants/api.js";
 import { toast } from "react-toastify";
 import BackHomeButton from "../components/BackHomeButton.jsx";
 
@@ -31,7 +31,7 @@ export default function Signup() {
 
     try {
       const data = await axios.post(
-        "https://expenses-tracker-backend-ki3x.onrender.com/api/register",
+        "/register",
         {
           // include multiple keys to match various backend expectations
           name: form.name,
@@ -83,8 +83,7 @@ export default function Signup() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href =
-      "https://expenses-tracker-backend-ki3x.onrender.com/api/loginwithgoogle";
+    window.location.href = "/loginwithgoogle";
   };
 
   return (

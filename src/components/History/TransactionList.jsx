@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
-import axios from "axios";
+import axios from "../../constants/api.js";
 import { getToken } from "../../constants/auth.js";
 import { MoreVertical, Download, Edit, Trash2 } from "lucide-react";
 import EditTransactionModal from "./EditTransactionModal";
-
-const API_URL =
-  "https://expenses-tracker-backend-ki3x.onrender.com/api/viewExpenses";
-const DELETE_URL =
-  "https://expenses-tracker-backend-ki3x.onrender.com/api/deleteExpense";
+import Swal from "sweetalert2";
+const API_URL = "/viewExpenses";
+const DELETE_URL = "/deleteExpense";
 
 function formatDate(d) {
   try {
@@ -43,6 +41,12 @@ function toCSV(rows) {
   return [header, ...lines]
     .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
     .join("\n");
+}
+
+function normalizeCategory(val) {
+  if (!val) return "";
+  const t = String(val).trim().toLowerCase();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
 }
 
 export default function TransactionList() {
@@ -86,7 +90,7 @@ export default function TransactionList() {
       const norm = data.map((t) => ({
         id: t._id, // Assuming the transaction object has an _id field
         date: t.Date || t.date || t.createdAt || "",
-        category: t.category || "",
+        category: normalizeCategory(t.category || t.categoryName || t.raw?.category || ""),
         type: t.type || t.transactionType || "",
         amount: t.amount || t.total || 0,
         description: t.description || t.note || "",
@@ -159,16 +163,50 @@ export default function TransactionList() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageData = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const downloadCsv = () => {
+const downloadCsv = async () => {
+  const result = await Swal.fire({
+    title: "Download CSV?",
+    text: "Do you want to download the transaction data as CSV?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#16a34a",
+    cancelButtonColor: "#d1d5db",
+    confirmButtonText: "Download",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
     const csv = toCSV(filtered);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
     a.href = url;
-    a.download = "transactions.csv";
+    a.download = `transactions-${Date.now()}.csv`;
     a.click();
+
     URL.revokeObjectURL(url);
-  };
+
+    Swal.fire({
+      icon: "success",
+      title: "Downloaded",
+      text: "CSV file downloaded successfully.",
+      timer: 1500,
+      showConfirmButton: false,
+    });
+  } catch (err) {
+    console.error("CSV download failed:", err);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Failed to download CSV file.",
+    });
+  }
+};
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
@@ -251,13 +289,79 @@ export default function TransactionList() {
               </select>
             </div>
 
-            <button
-              onClick={downloadCsv}
-              className="flex items-center gap-2 px-3 py-2 border rounded"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={downloadCsv}
+                className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100"
+              >
+                <Download className="w-4 h-4 " />
+                <span>Download CSV</span>
+              </button>
+<button
+  onClick={async () => {
+    const result = await Swal.fire({
+      title: "Download Report?",
+      text: "Do you want to download the PDF report?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#d1d5db",
+      confirmButtonText: "Download",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = getToken();
+      const config = {
+        withCredentials: true,
+        responseType: "blob",
+        headers: {},
+      };
+
+      if (token) config.headers.Authorization = `Bearer ${token}`;
+
+      const res = await axios.get("/download", config);
+
+      const blob = new Blob([res.data], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Expense-Report-${Date.now()}.pdf`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+      // success toast/modal
+      Swal.fire({
+        icon: "success",
+        title: "Downloaded",
+        text: "Your PDF has been downloaded.",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Download failed:", error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to download PDF report.",
+      });
+    }
+  }}
+  className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100"
+>
+  <Download className="w-4 h-4" />
+  <span>Download PDF</span>
+</button>
+            </div>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import axios from "../constants/api.js";
 import { AUTH_STORAGE_KEY, setAuth } from "../constants/auth";
 
 export default function OtpVerification() {
@@ -68,7 +68,7 @@ export default function OtpVerification() {
     setError("");
     try {
       const { data } = await axios.post(
-        "https://expenses-tracker-backend-ki3x.onrender.com/api/verify-otp",
+        "/verify-otp",
         { email, otp: code },
         { withCredentials: true },
       );

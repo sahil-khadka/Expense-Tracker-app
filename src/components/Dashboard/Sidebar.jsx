@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from "../../constants/api.js";
 import { toast } from "react-toastify";
 import { clearAuth } from "../../constants/auth.js";
 import { Home, Wallet, Target, Clock, BarChart, LogOut } from "lucide-react";
@@ -10,11 +10,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "https://expenses-tracker-backend-ki3x.onrender.com/api/logout",
-        {},
-        { withCredentials: true },
-      );
+      await axios.post("/logout", {}, { withCredentials: true });
       toast("You have logged out successfully", {
         type: "success",
         autoClose: 1200,

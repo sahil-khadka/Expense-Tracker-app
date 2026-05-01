@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import axios from "../constants/api.js";
 import { toast } from "react-toastify";
 import { AUTH_STORAGE_KEY, getToken, clearAuth } from "../constants/auth.js";
 import Sidebar from "../components/Dashboard/Sidebar";
@@ -16,68 +16,71 @@ export default function History() {
   const [netBalance, setNetBalance] = useState(0);
 
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const fetchTransactionsAndTotals = async () => {
       try {
         const token = getToken();
         const config = { withCredentials: true, headers: {} };
         if (token) config.headers.Authorization = `Bearer ${token}`;
-        const res = await axios.post(
-          "https://expenses-tracker-backend-ki3x.onrender.com/api/viewExpenses",
-          {},
-          config,
-        );
 
-        let data = [];
-        if (Array.isArray(res?.data)) {
-          data = res.data;
-        } else if (Array.isArray(res?.data?.data)) {
-          data = res.data.data;
-        } else if (Array.isArray(res?.data?.expenses)) {
-          data = res.data.expenses;
-        } else if (Array.isArray(res?.data?.transactions)) {
-          data = res.data.transactions;
-        } else if (res?.data && typeof res.data === "object") {
-          const arrayVal = Object.values(res.data).find((val) =>
-            Array.isArray(val),
-          );
-          if (arrayVal) data = arrayVal;
+        // 1) Fetch expenses aggregation (monthly) to get total spent from DB
+        try {
+          const pieRes = await axios.get("/filterPieChart?filter=monthly", config);
+          const payload = pieRes?.data?.data || pieRes?.data;
+          const totalExpense = payload?.totalExpense ?? (payload?.AggregationResult || []).reduce((s, it) => s + (it.total || 0), 0);
+          setTotalSpent(Number(totalExpense) || 0);
+        } catch (e) {
+          console.warn("Failed to fetch aggregated total expense:", e);
         }
 
-        let spent = 0;
-        let received = 0;
-        if (Array.isArray(data)) {
-          data.forEach((it) => {
-            const amt = Number(it.amount) || Number(it.total) || 0;
-            const t = (it.type || it.transactionType || "").toLowerCase();
+        // 2) Fetch all transactions and compute total received from DB-provided transactions
+        try {
+          const res = await axios.post("/viewExpenses", {}, config);
+          let data = [];
+          if (Array.isArray(res?.data)) data = res.data;
+          else if (Array.isArray(res?.data?.data)) data = res.data.data;
+          else if (Array.isArray(res?.data?.expenses)) data = res.data.expenses;
+          else if (Array.isArray(res?.data?.transactions)) data = res.data.transactions;
+          else if (res?.data && typeof res.data === "object") {
+            const arrayVal = Object.values(res.data).find((val) => Array.isArray(val));
+            if (arrayVal) data = arrayVal;
+          }
 
-            // Usually, expenses are categorized as "expense", income as "income"
-            if (t === "expense") {
-              spent += amt;
-            } else if (t === "income") {
-              received += amt;
-            } else {
-              // fallback if it's not strictly 'expense' or 'income'
-              received += amt;
-            }
-          });
+          let received = 0;
+          if (Array.isArray(data)) {
+            data.forEach((it) => {
+              const amt = Number(it.amount) || Number(it.total) || 0;
+              const t = (it.type || it.transactionType || "").toLowerCase();
+              if (t === "income") received += amt;
+            });
+          }
+          setTotalReceived(received);
+        } catch (e) {
+          console.warn("Failed to fetch transactions for total received:", e);
         }
-        setTotalSpent(spent);
-        setTotalReceived(received);
-        setNetBalance(received - spent);
+
+        // 3) Fetch wallet balance from backend (server-sourced net balance)
+        try {
+          const walletRes = await axios.post("/viewOwnwallet", {}, config);
+          const wallet = walletRes?.data?.data || walletRes?.data;
+          if (wallet && typeof wallet.balance !== "undefined") {
+            setNetBalance(Number(wallet.balance) || 0);
+          } else if (wallet && wallet.userID && wallet.amount) {
+            // fallback if model fields are different
+            setNetBalance(Number(wallet.amount) || 0);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch wallet balance:", e);
+        }
       } catch (err) {
         console.error("Failed to fetch transactions for history:", err);
       }
     };
-    fetchTransactions();
+    fetchTransactionsAndTotals();
   }, []);
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:5000/api/logout",
-        {},
-        { withCredentials: true },
-      );
+      await axios.post("/logout", {}, { withCredentials: true });
       toast("You have logged out successfully", {
         type: "success",
         autoClose: 1500,

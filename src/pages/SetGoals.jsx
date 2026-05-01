@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import axios from "../constants/api.js";
 import { toast } from "react-toastify";
 import { clearAuth } from "../constants/auth.js";
 import Sidebar from "../components/Dashboard/Sidebar";
@@ -11,11 +11,7 @@ export default function SetGoals() {
 
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:5000/api/logout",
-        {},
-        { withCredentials: true },
-      );
+      await axios.post("/logout", {}, { withCredentials: true });
       toast("You have logged out successfully", {
         type: "success",
         autoClose: 1500,

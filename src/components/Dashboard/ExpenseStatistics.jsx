@@ -47,7 +47,7 @@ export default function ExpenseStatistics({
         }}
       >
         <div className="absolute top-4 left-4 flex items-center gap-1 cursor-pointer">
-          <span className="text-sm font-medium">Spending Overview</span>
+          <span className="text-sm font-medium">Spending Monthly Overview</span>
         </div>
 
         {/* Left: Donut chart with center total */}
@@ -153,9 +153,13 @@ export default function ExpenseStatistics({
                         <div className="text-sm font-medium text-gray-800">
                           {it.category}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {Math.round(pct)}%
-                        </div>
+                                <div className="text-xs text-gray-500">
+                                  {pct >= 1
+                                    ? `${Math.round(pct)}%`
+                                    : pct > 0
+                                    ? "<1%"
+                                    : "0%"}
+                                </div>
                       </div>
                     </div>
                     <div className="text-sm font-semibold mr-10">

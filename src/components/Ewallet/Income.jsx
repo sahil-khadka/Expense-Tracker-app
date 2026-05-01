@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import axios from "../../constants/api.js";
 import { getToken } from "../../constants/auth.js";
 
-const API_URL =
-  "https://expenses-tracker-backend-ki3x.onrender.com/api/ExpenseMoney";
+const API_URL = "/ExpenseMoney";
 
 export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
   const [form, setForm] = useState({
@@ -53,12 +52,18 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
 
       const isoDate = toApiIso(form.date);
 
+      const normalizeCategory = (val) => {
+        if (!val) return "";
+        const t = String(val).trim().toLowerCase();
+        return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
+      };
+
       const payload = {
         date: isoDate,
         Date: isoDate,
         amount:
           parseFloat(form.amount.toString().replace(/[^0-9.-]+/g, "")) || 0,
-        category: form.category,
+        category: normalizeCategory(form.category),
         account: form.account,
         note: form.note,
         // backend expects 'description' (zod validation). mirror note into description

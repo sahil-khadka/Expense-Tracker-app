@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
-import axios from "axios";
+import axios from "../../constants/api.js";
 import { getToken } from "../../constants/auth.js";
 
-const API_URL =
-  "https://expenses-tracker-backend-ki3x.onrender.com/api/ExpenseMoney";
+const API_URL = "/ExpenseMoney";
 
 export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
   const [form, setForm] = useState({
@@ -53,12 +52,18 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
 
       const isoDate = toApiIso(form.date);
 
+      const normalizeCategory = (val) => {
+        if (!val) return "";
+        const t = String(val).trim().toLowerCase();
+        return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
+      };
+
       const payload = {
         date: isoDate,
         Date: isoDate,
         amount:
           parseFloat(form.amount.toString().replace(/[^0-9.-]+/g, "")) || 0,
-        category: form.category,
+        category: normalizeCategory(form.category),
         account: form.account,
         note: form.note,
         // backend expects 'description' (zod validation). mirror note into description
@@ -75,7 +80,6 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
       if (token) config.headers.Authorization = `Bearer ${token}`;
 
       // Optimistically close modal and show toast so it feels instant to the user
-      toast("You have saved successfully", { type: "success" });
       onClose();
       setForm({
         date: new Date().toISOString().slice(0, 10),
@@ -84,19 +88,20 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
         account: "",
         note: "",
       });
-
+      
       // Let the backend request finish in the background
       if (typeof onOptimisticSave === "function") {
         onOptimisticSave(payload.amount);
       }
       axios
-        .post(API_URL, payload, config)
-        .then(() => {
-          if (typeof onSaved === "function") onSaved();
+      .post(API_URL, payload, config)
+      .then(() => {
+        if (typeof onSaved === "function") onSaved();
+        toast("You have saved successfully", { type: "success" });
         })
         .catch((err) => {
-          console.error("Expense background save error:", err);
-          toast("Network delay: failed to sync this transaction to server.", {
+         
+          toast("Insufficient Balance", {
             type: "error",
           });
         })

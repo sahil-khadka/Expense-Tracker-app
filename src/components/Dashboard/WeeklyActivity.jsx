@@ -1,10 +1,29 @@
 import React, { useMemo } from "react";
 
-export default function WeeklyActivity({ transactions = [] }) {
+export default function WeeklyActivity({ transactions = [], barData = null }) {
   // desired labels/order: Sat -> Sun -> Mon -> Tue -> Wed -> Thu -> Fri
   const labels = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
   const { data, maxValue, ySteps } = useMemo(() => {
+    // If backend provided weekly barchart data, use it directly.
+    if (barData && Array.isArray(barData) && barData.length > 0) {
+      const arr = labels.map((label) => {
+        const row = barData.find((d) => d.day === label) || {};
+        return {
+          label,
+          income: Number(row.Deposit) || 0,
+          expense: Number(row.Withdraw) || 0,
+        };
+      });
+      const max = Math.max(...arr.flatMap((d) => [d.income, d.expense]), 100);
+      const top = Math.ceil(max / 100) * 100;
+      const steps = 5;
+      const yLabels = Array.from({ length: steps + 1 }, (_, i) =>
+        Math.round((top * (steps - i)) / steps),
+      );
+      return { data: arr, maxValue: top, ySteps: yLabels };
+    }
+
     const map = labels.reduce((acc, l) => {
       acc[l] = { income: 0, expense: 0 };
       return acc;
@@ -19,11 +38,7 @@ export default function WeeklyActivity({ transactions = [] }) {
       const amt = Number(t.amount) || Number(t.total) || 0;
       if (!date || Number.isNaN(amt)) return;
       const day = weekdayNames[date.getDay()];
-      // map day to our labels if present
-      if (map[day] === undefined) {
-        // if day not in map (shouldn't happen), skip
-        return;
-      }
+      if (map[day] === undefined) return;
       if (kind === "expense") map[day].expense += amt;
       else map[day].income += amt;
     });
@@ -42,7 +57,7 @@ export default function WeeklyActivity({ transactions = [] }) {
     );
 
     return { data: arr, maxValue: top, ySteps: yLabels };
-  }, [transactions]);
+  }, [transactions, barData]);
 
   return (
     <div className="flex-[0.7] min-w-[420px]">

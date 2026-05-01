@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import axios from "../../constants/api.js";
 import { getToken } from "../../constants/auth.js";
 import { toast } from "react-toastify";
-
-const UPDATE_URL =
-  "https://expenses-tracker-backend-ki3x.onrender.com/api/updateexpense";
+import Swal from "sweetalert2";
+const UPDATE_URL = "/updateexpense";
 
 export default function EditTransactionModal({
   isOpen,
@@ -35,34 +34,63 @@ export default function EditTransactionModal({
 
   if (!isOpen || !transaction) return null;
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    try {
-      const token = getToken();
-      const config = {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      };
-      const payload = {
-        type,
-        amount: Number(amount),
-        category,
-        account: "Cash",
-        description,
-        date,
-      };
-      console.log("cdcdc1111");
+const handleSave = async (e) => {
+  e.preventDefault();
 
-      await axios.put(`${UPDATE_URL}/${transaction.id}`, payload, config);
-      console.log("cdcdc");
-      toast.success("Transaction updated successfully!");
-      onTransactionUpdated(); // This will refresh the list
-      onClose();
-    } catch (error) {
-      console.error("Failed to update transaction:", error);
-      toast.error("Failed to update transaction. Please try again.");
-    }
-  };
+  const result = await Swal.fire({
+    title: "Save Changes?",
+    text: "Do you want to update this transaction?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#2563eb",
+    cancelButtonColor: "#d1d5db",
+    confirmButtonText: "Yes, Update",
+    cancelButtonText: "Cancel",
+    reverseButtons: true,
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const token = getToken();
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    };
+
+    const payload = {
+      type,
+      amount: Number(amount),
+      category,
+      account: "Cash",
+      description,
+      date,
+    };
+
+    await axios.put(`${UPDATE_URL}/${transaction.id}`, payload, config);
+
+    toast.success("Transaction updated successfully!");
+
+    Swal.fire({
+      icon: "success",
+      title: "Updated",
+      text: "Transaction updated successfully.",
+      timer: 500,
+      showConfirmButton: false,
+    });
+
+    onTransactionUpdated();
+    onClose();
+  } catch (error) {
+    console.error("Failed to update transaction:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "Failed to update transaction.",
+    });
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">

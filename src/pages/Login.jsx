@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logSignImage from "../assets/log&sign.png";
-import axios from "axios";
+import axios from "../constants/api.js";
 import { toast } from "react-toastify";
 import {
   AUTH_STORAGE_KEY,
@@ -29,7 +29,7 @@ export default function Login() {
     try {
       console.log("sending req1");
       const response = await axios.post(
-        "https://expenses-tracker-backend-ki3x.onrender.com/api/login",
+        "/login",
         {
           email: form.email,
           password: form.password,
@@ -82,8 +82,7 @@ export default function Login() {
 
   const handleGoogleLogin = () => {
     try {
-      window.location.href =
-        "https://expenses-tracker-backend-ki3x.onrender.com/api/loginwithgoogle";
+      window.location.href = "/loginwithgoogle";
     } catch (error) {
       toast("Google login failed. Please try again.", {
         type: "error",
