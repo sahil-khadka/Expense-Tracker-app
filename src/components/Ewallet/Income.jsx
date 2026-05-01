@@ -79,8 +79,14 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
       const config = { withCredentials: true, headers: {} };
       if (token) config.headers.Authorization = `Bearer ${token}`;
 
-      // Optimistically close modal and show toast so it feels instant to the user
-      toast("You have saved successfully", { type: "success" });
+      // Keep optimistic balance update, but show final toast only after server confirms.
+      if (typeof onOptimisticSave === "function") {
+        onOptimisticSave(payload.amount);
+      }
+      await axios.post(API_URL, payload, config);
+
+      if (typeof onSaved === "function") onSaved();
+      toast.success("Income saved successfully.");
       onClose();
       setForm({
         date: new Date().toISOString().slice(0, 10),
@@ -89,25 +95,6 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
         account: "",
         note: "",
       });
-
-      // Let the backend request finish in the background
-      if (typeof onOptimisticSave === "function") {
-        onOptimisticSave(payload.amount);
-      }
-      axios
-        .post(API_URL, payload, config)
-        .then(() => {
-          if (typeof onSaved === "function") onSaved();
-        })
-        .catch((err) => {
-          console.error("Income background save error:", err);
-          toast("Network delay: failed to sync this transaction to server.", {
-            type: "error",
-          });
-        })
-        .finally(() => {
-          setLoading(false);
-        });
     } catch (err) {
       console.error("Income save error:", err, err?.response?.data);
       let msg = "Failed to save income";
@@ -125,7 +112,9 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
         msg =
           "Network Error: could not reach http://localhost:5000. Is the backend running and CORS configured?";
       }
-      toast(msg, { type: "error" });
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 

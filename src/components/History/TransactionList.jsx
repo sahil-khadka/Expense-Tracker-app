@@ -4,6 +4,7 @@ import { getToken } from "../../constants/auth.js";
 import { MoreVertical, Download, Edit, Trash2 } from "lucide-react";
 import EditTransactionModal from "./EditTransactionModal";
 import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 const API_URL = "/viewExpenses";
 const DELETE_URL = "/deleteExpense";
 
@@ -122,20 +123,58 @@ export default function TransactionList() {
   }, []);
 
   const handleDelete = async (transactionId) => {
-    if (window.confirm("Are you sure you want to delete this transaction?")) {
-      try {
-        const token = getToken();
-        await axios.delete(`${DELETE_URL}/${transactionId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        });
-        // Refresh transactions after deletion
-        fetchTransactions();
-        setOpenMenu(null);
-      } catch (error) {
-        console.error("Failed to delete transaction:", error);
-        alert("Failed to delete transaction.");
-      }
+    const result = await Swal.fire({
+      title: "Delete transaction?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#d1d5db",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      setOpenMenu(null);
+      return;
+    }
+
+    try {
+      const token = getToken();
+      await axios.delete(`${DELETE_URL}/${transactionId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      await fetchTransactions();
+      setOpenMenu(null);
+      toast.success("Transaction deleted successfully!",{
+        autoClose: 1000,
+        position: "top-right",
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        progressClassName: "bg-blue-500",
+        progressBarClassName: "bg-blue-500",
+        iconClassName: "bg-blue-500",
+        textClassName: "bg-blue-500",
+        bodyClassName: "bg-blue-500",
+        headerClassName: "bg-blue-500",
+        footerClassName: "bg-blue-500",
+      });
+    } catch (error) {
+      console.error("Failed to delete transaction:", error);
+      setOpenMenu(null);
+      toast.error("Failed to delete transaction.");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to delete transaction.",
+      });
     }
   };
 
@@ -189,22 +228,10 @@ const downloadCsv = async () => {
     a.click();
 
     URL.revokeObjectURL(url);
-
-    Swal.fire({
-      icon: "success",
-      title: "Downloaded",
-      text: "CSV file downloaded successfully.",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+    toast.success("CSV file downloaded successfully.");
   } catch (err) {
     console.error("CSV download failed:", err);
-
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Failed to download CSV file.",
-    });
+    toast.error("Failed to download CSV file.");
   }
 };
 
@@ -338,22 +365,10 @@ const downloadCsv = async () => {
 
       window.URL.revokeObjectURL(url);
 
-      // success toast/modal
-      Swal.fire({
-        icon: "success",
-        title: "Downloaded",
-        text: "Your PDF has been downloaded.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      toast.success("PDF report downloaded successfully.");
     } catch (error) {
       console.error("Download failed:", error);
-
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Failed to download PDF report.",
-      });
+      toast.error("Failed to download PDF report.");
     }
   }}
   className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100"

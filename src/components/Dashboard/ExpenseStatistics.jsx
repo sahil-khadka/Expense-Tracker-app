@@ -1,16 +1,15 @@
 import React, { useMemo } from "react";
-import { ChevronDown } from "lucide-react";
 
 export default function ExpenseStatistics({
   expenseStats,
   totalExpense,
-  pieBackground,
-  slices,
   transactions,
 }) {
-  // If `transactions` provided, compute category totals from transaction data (expenses only)
-  const computed = useMemo(() => {
-    if (!transactions || transactions.length === 0) return null;
+  // Prefer backend pie-chart aggregation; fallback to client aggregation if unavailable.
+  const fallbackFromTransactions = useMemo(() => {
+    if (!transactions || transactions.length === 0) {
+      return { expenseStats: [], totalExpense: 0 };
+    }
     const agg = {};
     transactions.forEach((t) => {
       const kind = (t.type || t.transactionType || "").toString().toLowerCase();
@@ -28,30 +27,25 @@ export default function ExpenseStatistics({
     return { expenseStats: arr, totalExpense: total };
   }, [transactions]);
 
-  const hasData =
-    (computed &&
-      computed.expenseStats.length > 0 &&
-      computed.totalExpense > 0) ||
-    (expenseStats && expenseStats.length > 0 && totalExpense > 0);
+  const sourceStats =
+    expenseStats && expenseStats.length > 0
+      ? expenseStats
+      : fallbackFromTransactions.expenseStats;
+  const sourceTotal =
+    Number(totalExpense) > 0
+      ? Number(totalExpense)
+      : fallbackFromTransactions.totalExpense;
+  const hasData = sourceStats.length > 0 && sourceTotal > 0;
 
   return (
-    <div className="flex-[0.9]">
-      <h2 className="text-xl font-medium mb-4 text-[#0d4f2a]">
-        Expense Statistics
-      </h2>
-      <div
-        className="rounded-[20px] p-6 h-[440px] w-[720px] flex flex-row items-center justify-between relative"
-        style={{
-          background: "rgba(255,255,255,0.95)",
-          boxShadow: "0 25px 60px rgba(6, 40, 15, 0.14)",
-        }}
-      >
-        <div className="absolute top-4 left-4 flex items-center gap-1 cursor-pointer">
-          <span className="text-sm font-medium">Spending Monthly Overview</span>
-        </div>
+    <div className="p-1 h-[380px] flex flex-col relative">
+      <div className="mb-4 mt-1">
+        <span className="text-sm font-medium">Spending Monthly Overview</span>
+      </div>
 
+      <div className="flex-1 flex items-start justify-between">
         {/* Left: Donut chart with center total */}
-        <div className="flex items-center gap-6 pl-8">
+        <div className="flex items-start gap-6 pl-2">
           <div className="relative w-56 h-56">
             {/* build background from slices or fallback */}
             <div
@@ -60,14 +54,8 @@ export default function ExpenseStatistics({
                 background:
                   (hasData &&
                     (() => {
-                      const useStats = computed
-                        ? computed.expenseStats
-                        : expenseStats || [];
-                      const total = computed
-                        ? computed.totalExpense
-                        : totalExpense ||
-                          useStats.reduce((s, it) => s + (it.amount || 0), 0) ||
-                          1;
+                      const useStats = sourceStats;
+                      const total = sourceTotal || 1;
                       const pieColors = [
                         "#16a34a",
                         "#eab308",
@@ -102,9 +90,8 @@ export default function ExpenseStatistics({
               <div className="text-sm font-semibold">
                 Rs.
                 {Math.round(
-                  computed?.totalExpense ||
-                    totalExpense ||
-                    (expenseStats || []).reduce(
+                  sourceTotal ||
+                    (sourceStats || []).reduce(
                       (s, it) => s + (it.amount || 0),
                       0,
                     ) ||
@@ -116,15 +103,14 @@ export default function ExpenseStatistics({
         </div>
 
         {/* Right: category list with percentages and amounts */}
-        <div className="pr-8 flex-1 flex flex-col gap-4">
-          <div className="flex-1 flex flex-col justify-center">
-            {((computed && computed.expenseStats) || expenseStats || [])
+        <div className="pr-2 flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col justify-start pt-2">
+            {(sourceStats || [])
               .slice(0, 6)
               .map((it, idx) => {
-                const total = computed
-                  ? computed.totalExpense
-                  : totalExpense ||
-                    (expenseStats || []).reduce(
+                const total =
+                  sourceTotal ||
+                    (sourceStats || []).reduce(
                       (s, ii) => s + (ii.amount || 0),
                       0,
                     ) ||
@@ -137,7 +123,7 @@ export default function ExpenseStatistics({
                   >
                     <div className="flex items-center gap-4">
                       <div
-                        className="w-3 h-3 rounded-full ml-20"
+                        className="w-3 h-3 rounded-full ml-8"
                         style={{
                           background: [
                             "#16a34a",
@@ -162,7 +148,7 @@ export default function ExpenseStatistics({
                                 </div>
                       </div>
                     </div>
-                    <div className="text-sm font-semibold mr-10">
+                    <div className="text-sm font-semibold mr-4">
                       Rs.{Number(it.amount).toLocaleString()}
                     </div>
                   </div>

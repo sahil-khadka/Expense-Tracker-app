@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
 
 export default function WeeklyActivity({ transactions = [], barData = null }) {
-  // desired labels/order: Sat -> Sun -> Mon -> Tue -> Wed -> Thu -> Fri
-  const labels = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+  const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const { data, maxValue, ySteps } = useMemo(() => {
     // If backend provided weekly barchart data, use it directly.
@@ -60,17 +59,7 @@ export default function WeeklyActivity({ transactions = [], barData = null }) {
   }, [transactions, barData]);
 
   return (
-    <div className="flex-[0.7] min-w-[420px]">
-      <h2 className="text-xl font-medium mb-6 text-[#0d4f2a]">
-        Weekly Activity
-      </h2>
-      <div
-        className="rounded-[20px] p-6 h-[380px] flex flex-col relative"
-        style={{
-          background: "rgba(255,255,255,0.85)",
-          boxShadow: "0 10px 30px rgba(30,80,40,0.06)",
-        }}
-      >
+    <div className="p-1 h-[380px] flex flex-col relative">
         {/* Legend */}
         <div className="flex justify-end gap-6 text-xs mb-2">
           <div className="flex items-center gap-2">
@@ -128,7 +117,6 @@ export default function WeeklyActivity({ transactions = [], barData = null }) {
             ))}
           </div>
         </div>
-      </div>
     </div>
   );
 }

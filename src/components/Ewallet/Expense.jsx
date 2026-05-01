@@ -79,7 +79,14 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
       const config = { withCredentials: true, headers: {} };
       if (token) config.headers.Authorization = `Bearer ${token}`;
 
-      // Optimistically close modal and show toast so it feels instant to the user
+      // Keep optimistic balance update, but show final toast only after server confirms.
+      if (typeof onOptimisticSave === "function") {
+        onOptimisticSave(payload.amount);
+      }
+      await axios.post(API_URL, payload, config);
+
+      if (typeof onSaved === "function") onSaved();
+      toast.success("Expense saved successfully.");
       onClose();
       setForm({
         date: new Date().toISOString().slice(0, 10),
@@ -88,44 +95,34 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
         account: "",
         note: "",
       });
-      
-      // Let the backend request finish in the background
-      if (typeof onOptimisticSave === "function") {
-        onOptimisticSave(payload.amount);
-      }
-      axios
-      .post(API_URL, payload, config)
-      .then(() => {
-        if (typeof onSaved === "function") onSaved();
-        toast("You have saved successfully", { type: "success" });
-        })
-        .catch((err) => {
-         
-          toast("Insufficient Balance", {
-            type: "error",
-          });
-        })
-        .finally(() => {
-          setLoading(false);
-        });
     } catch (err) {
       console.error("Expense save error:", err, err?.response?.data);
       let msg = "Failed to save expense";
-      if (err?.response) {
+      const isInsufficientBalance =
+        err?.response?.status === 400 &&
+        String(err?.response?.data?.message || "")
+          .toLowerCase()
+          .includes("insufficient");
+
+      if (isInsufficientBalance) {
+        msg = "Insufficient balance in your wallet.";
+      } else if (err?.response) {
         const status = err.response.status;
         let detail = err.response.data;
         try {
           if (typeof detail === "object") detail = JSON.stringify(detail);
         } catch (e) {}
         msg = `Request failed with status ${status}${detail ? ": " + detail : ""}`;
-      } else if (err.message) {
+      } else if (err?.message) {
         msg = err.message;
       }
       if (msg === "Network Error") {
         msg =
           "Network Error: could not reach http://localhost:5000. Is the backend running and CORS configured?";
       }
-      toast(msg, { type: "error" });
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 

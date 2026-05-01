@@ -13,7 +13,7 @@ export default function Sidebar() {
       await axios.post("/logout", {}, { withCredentials: true });
       toast("You have logged out successfully", {
         type: "success",
-        autoClose: 1200,
+        autoClose: 1500,
       });
     } catch (err) {
       // ignore

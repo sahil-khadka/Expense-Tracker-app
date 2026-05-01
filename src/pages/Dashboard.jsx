@@ -52,7 +52,9 @@ function formatDateLocal(d) {
 }
 
 function fmt(n) {
-  return Number(n).toLocaleString("en-US", {
+  const value = Number(n);
+  const safeValue = Number.isFinite(value) ? value : 0;
+  return safeValue.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -123,6 +125,23 @@ export default function Dashboard() {
       }
     };
 
+    const fetchMonthlySummary = async () => {
+      try {
+        const res = await axios.get("/monthlySummary", { withCredentials: true });
+        setServerOnline(true);
+        const payload = res?.data?.data || {};
+        const income = Number(payload?.totalIncome);
+        const expense = Number(payload?.totalExpense);
+        const balance = Number(payload?.walletBalance);
+
+        if (Number.isFinite(income)) setTotalIncome(income);
+        if (Number.isFinite(expense)) setTotalExpense(expense);
+        if (Number.isFinite(balance)) setWalletBalance(balance);
+      } catch {
+        setServerOnline(false);
+      }
+    };
+
     const fetchBarData = async () => {
       try {
         const res = await axios.get("/filterBarchart", { withCredentials: true });
@@ -140,9 +159,19 @@ export default function Dashboard() {
 
         try {
           const walletRes = await axios.post("/viewOwnwallet", {}, config);
-          const balance = walletRes?.data?.data?.balance ?? walletRes?.data;
-          setWalletBalance(balance);
-          const rawName = walletRes?.data?.data?.userID?.userName;
+          const walletData = walletRes?.data?.data || {};
+          const balanceCandidates = [
+            walletData?.balance,
+            walletData?.walletBalance,
+            walletRes?.data?.balance,
+            walletRes?.data?.walletBalance,
+          ];
+          const parsedBalance =
+            balanceCandidates
+              .map((val) => Number(val))
+              .find((val) => Number.isFinite(val)) ?? 0;
+          setWalletBalance(parsedBalance);
+          const rawName = walletData?.userID?.userName || walletRes?.data?.userName;
           if (rawName) setUserName(rawName);
         } catch {}
 
@@ -162,15 +191,9 @@ export default function Dashboard() {
           category: it.category || it.categoryName || "",
           type: it.type || it.transactionType || "",
           amount: Number(it.amount) || Number(it.total) || 0,
-        }));
+        }))
+        .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
-        let inc = 0, exp = 0;
-        norm.forEach((it) => {
-          const t = (it.type || "").toLowerCase();
-          if (t === "expense") exp += it.amount;
-          else inc += it.amount;
-        });
-        setTotalIncome(inc);
         setTransactions(norm);
 
         try {
@@ -191,6 +214,7 @@ export default function Dashboard() {
     const storedName = getUserName();
     if (storedName) setUserName(storedName);
     fetchExpenseStats();
+    fetchMonthlySummary();
     fetchBarData();
     fetchWallet();
   }, []);
@@ -243,7 +267,7 @@ export default function Dashboard() {
     layout: { display: "flex", flex: 1, overflow: "hidden" },
     main: {
       flex: 1,
-      marginLeft: 256,
+      marginLeft: "var(--sidebar-width, 256px)",
       paddingTop: 64,
       background: "#f8faf9",
       overflowY: "auto",
@@ -382,7 +406,7 @@ export default function Dashboard() {
                     </span>{" "}
                    
                   </p>
-                  <p style={S.greetSub}>Here's your financial overview for today.</p>
+                  <p style={S.greetSub}>Here's your financial overview for this month.</p>
                 </div>
               </div>
               <span style={S.greetDate}>{todayStr}</span>
@@ -453,14 +477,14 @@ export default function Dashboard() {
                   {transactions.length === 0 ? (
                     <div style={{ padding: "32px 22px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>No transactions yet.</div>
                   ) : (
-                    transactions.slice(0, 5).map((item, i) => {
+                    transactions.slice(0, 3).map((item, i) => {
                       const isExp = String(item.type || "").toLowerCase() === "expense";
                       return (
                         <div
                           key={i}
                           style={{
                             ...S.txnItem,
-                            borderBottom: i < Math.min(transactions.length, 5) - 1 ? "1px solid #f3f4f6" : "none",
+                            borderBottom: i < Math.min(transactions.length, 3) - 1 ? "1px solid #f3f4f6" : "none",
                           }}
                           onMouseEnter={(e) => (e.currentTarget.style.background = "#f9fafb")}
                           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}

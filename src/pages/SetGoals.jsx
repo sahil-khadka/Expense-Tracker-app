@@ -29,7 +29,10 @@ export default function SetGoals() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 bg-white relative overflow-y-auto pb-20 ml-64 pt-16">
+        <main
+          className="flex-1 bg-white relative overflow-y-auto pb-20 pt-16"
+          style={{ marginLeft: "var(--sidebar-width, 256px)" }}
+        >
           <div className="p-10 max-w-[1100px]">
             <h1 className="text-4xl font-bold text-gray-800">Set goals</h1>
           </div>

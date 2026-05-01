@@ -22,7 +22,7 @@ export function ToastProvider({ children }) {
 
   useEffect(() => {
     if (!toast) return undefined;
-    const timeout = setTimeout(() => setToast(null), 3000);
+    const timeout = setTimeout(() => setToast(null), 1500);
     return () => clearTimeout(timeout);
   }, [toast]);
 

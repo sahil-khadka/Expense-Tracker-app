@@ -69,26 +69,30 @@ const handleSave = async (e) => {
 
     await axios.put(`${UPDATE_URL}/${transaction.id}`, payload, config);
 
-    toast.success("Transaction updated successfully!");
-
-    Swal.fire({
-      icon: "success",
-      title: "Updated",
-      text: "Transaction updated successfully.",
-      timer: 500,
-      showConfirmButton: false,
+    toast.success("Transaction updated successfully!",{
+      autoClose: 1000,
+      position: "top-right",
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      progressClassName: "bg-blue-500",
+      progressBarClassName: "bg-blue-500",
+      iconClassName: "bg-blue-500",
+      textClassName: "bg-blue-500",
+      bodyClassName: "bg-blue-500",
+      headerClassName: "bg-blue-500",
+      footerClassName: "bg-blue-500",
     });
+
 
     onTransactionUpdated();
     onClose();
   } catch (error) {
     console.error("Failed to update transaction:", error);
-
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Failed to update transaction.",
-    });
+    toast.error("Failed to update transaction.");
   }
 };
 
