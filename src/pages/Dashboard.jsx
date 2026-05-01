@@ -21,6 +21,7 @@ import {
   Sunset,
   Moon,
 } from "lucide-react";
+import ChatWidget from "../components/ChatWidget";
 
 /* ─── helpers ─────────────────────────────────────── */
 function getGreeting() {
@@ -538,28 +539,7 @@ export default function Dashboard() {
         </main>
       </div>
 
-      {/* Floating Chat */}
-      <div style={{ position: "fixed", bottom: 24, right: 24, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", borderRadius: 20, padding: "6px 14px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", fontSize: 12, fontWeight: 600, color: "#374151" }}>
-          <Sparkles size={13} color="#16a34a" /> We are here to help!
-        </div>
-        <button
-          style={{
-            background: "linear-gradient(135deg,#16a34a,#22c55e)",
-            border: "none",
-            borderRadius: "50%",
-            width: 52,
-            height: 52,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            boxShadow: "0 4px 16px rgba(22,163,74,0.4)",
-          }}
-        >
-          <MessageCircle size={24} color="#fff" strokeWidth={2} />
-        </button>
-      </div>
+      <ChatWidget />
     </div>
   );
 }
