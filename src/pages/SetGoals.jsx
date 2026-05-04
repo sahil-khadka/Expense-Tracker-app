@@ -232,7 +232,7 @@ const GoalCard = ({ goal, onDeposit, onEdit, onDelete }) => {
               {label}
             </p>
             <p className={`text-sm font-bold ${cls}`}>
-              Rs.{Number(value).toLocaleString()}
+              Rs. {Number(value).toLocaleString()}
             </p>
           </div>
         ))}
@@ -508,7 +508,7 @@ export default function SetGoals() {
                   bg: "bg-blue-500",
                   card: "bg-blue-50",
                   label: "Total Saved",
-                  value: `Rs.${totalSaved.toLocaleString()}`,
+                  value: `Rs. ${totalSaved.toLocaleString()}`,
                 },
                 {
                   icon: <CheckCircle2 className="w-5 h-5 text-white" />,
@@ -662,7 +662,7 @@ export default function SetGoals() {
                 required
               />
             </Field>
-            <Field label="Target Amount (Rs.)">
+            <Field label="Target Amount (Rs. )">
               <input
                 type="number"
                 min="1"
@@ -714,7 +714,7 @@ export default function SetGoals() {
                 required
               />
             </Field>
-            <Field label="Target Amount (Rs.)">
+            <Field label="Target Amount (Rs. )">
               <input
                 type="number"
                 min="1"
@@ -758,15 +758,16 @@ export default function SetGoals() {
             <ProgressBar pct={parseFloat(selected.progressPercentage)} />
             <div className="flex justify-between mt-2 text-xs text-gray-500">
               <span>
-                Rs.{Number(selected.savedAmount).toLocaleString()} saved
+                Rs. {Number(selected.savedAmount).toLocaleString()} saved
               </span>
               <span>
-                Rs.{Number(selected.remainingAmount).toLocaleString()} remaining
+                Rs. {Number(selected.remainingAmount).toLocaleString()}{" "}
+                remaining
               </span>
             </div>
           </div>
           <form onSubmit={handleDeposit} className="space-y-4">
-            <Field label="Amount (Rs.)">
+            <Field label="Amount (Rs. )">
               <input
                 type="number"
                 min="1"
@@ -822,7 +823,7 @@ export default function SetGoals() {
             </p>
             {selected.savedAmount > 0 && (
               <p className="text-sm text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mt-3">
-                Rs.{Number(selected.savedAmount).toLocaleString()} will be
+                Rs. {Number(selected.savedAmount).toLocaleString()} will be
                 refunded to your wallet.
               </p>
             )}
