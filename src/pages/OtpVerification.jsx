@@ -1,13 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../constants/api.js";
-import { AUTH_STORAGE_KEY, setAuth } from "../constants/auth";
+import { setAuth } from "../constants/auth";
 
 export default function OtpVerification() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || "your email";
+  const initialEmail = location.state?.email || localStorage.getItem("otpEmail") || "";
+  const initialFlow = location.state?.flow || localStorage.getItem("otpFlow") || "register";
 
+  const [email, setEmail] = useState(initialEmail);
+  const [flow, setFlow] = useState(initialFlow);
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [focused, setFocused] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,6 +20,19 @@ export default function OtpVerification() {
   const [canResend, setCanResend] = useState(false);
   const [shake, setShake] = useState(false);
   const inputs = useRef([]);
+
+  useEffect(() => {
+    const stateEmail = location.state?.email;
+    const stateFlow = location.state?.flow;
+    if (stateEmail) {
+      localStorage.setItem("otpEmail", stateEmail);
+      setEmail(stateEmail);
+    }
+    if (stateFlow) {
+      localStorage.setItem("otpFlow", stateFlow);
+      setFlow(stateFlow);
+    }
+  }, [location.state]);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -64,19 +80,30 @@ export default function OtpVerification() {
       triggerShake();
       return;
     }
+    if (!email) {
+      setError("Email is missing. Please restart the flow.");
+      return;
+    }
     setLoading(true);
     setError("");
+    const endpoint = flow === "reset" ? "/forgetpasswordOTP" : "/verify-otp";
     try {
       const { data } = await axios.post(
-        "/verify-otp",
+        endpoint,
         { email, otp: code },
         { withCredentials: true },
       );
       console.log("OTP verification success:", data);
-      // mark user as authenticated (persist by default after verification)
-      setAuth(true, true);
       setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1500);
+
+      if (flow === "reset") {
+        localStorage.removeItem("otpFlow");
+        setTimeout(() => navigate("/reset-password", { state: { email } }), 1500);
+      } else {
+        setAuth(true, true);
+        localStorage.removeItem("otpFlow");
+        setTimeout(() => navigate("/dashboard"), 1500);
+      }
     } catch (err) {
       setError(
         err.response?.data?.message || "Network error. Please try again.",
@@ -92,14 +119,21 @@ export default function OtpVerification() {
     setTimeout(() => setShake(false), 500);
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (!canResend) return;
     setCanResend(false);
     setResendTimer(30);
     setOtp(Array(6).fill(""));
     setError("");
     inputs.current[0]?.focus();
-    // TODO: Call resend API if available
+
+    if (flow === "reset") {
+      try {
+        await axios.post("/forgetpassword", { email });
+      } catch (err) {
+        setError("Could not resend code. Please try again.");
+      }
+    }
   };
 
   const allFilled = otp.every((d) => d !== "");
@@ -239,10 +273,10 @@ export default function OtpVerification() {
             <div className="text-center mt-4 text-[13px]">
               <button
                 type="button"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate(flow === "register" ? "/signup" : "/login")}
                 className="text-[#2d6a3f] font-bold hover:underline"
               >
-                ← Back to Login
+                ← Back to {flow === "register" ? "Register" : "Login"}
               </button>
             </div>
           </>

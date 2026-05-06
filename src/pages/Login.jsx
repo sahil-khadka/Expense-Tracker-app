@@ -10,7 +10,6 @@ import {
   setToken,
   setUserName,
 } from "../constants/auth.js";
-import BackHomeButton from "../components/BackHomeButton.jsx";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -94,9 +93,8 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen w-full bg-white font-sans">
-      <BackHomeButton />
       {/* Left Image Section */}
-      <div className="hidden lg:block lg:w-1/2 relative bg-[#f1efe9]">
+      <div className="hidden md:block md:w-1/2 relative bg-[#f1efe9]">
         <img
           src={logSignImage}
           alt="Budget Planner Desktop"
@@ -105,7 +103,7 @@ export default function Login() {
       </div>
 
       {/* Right Form Section */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-8 sm:px-16 lg:px-24">
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center px-8 sm:px-16 lg:px-24">
         <div className="w-full max-w-[400px]">
           {/* Header */}
           <div className="text-center mb-10">
@@ -213,12 +211,12 @@ export default function Login() {
                 />
                 Remember me
               </label>
-              <a
-                href="#"
+              <Link
+                to="/forgot-password"
                 className="text-sm text-[#2d6a3f] font-bold hover:text-[#1a4026]"
               >
                 Forgot Password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}

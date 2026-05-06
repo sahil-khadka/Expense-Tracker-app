@@ -140,8 +140,8 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
           <VoiceRecorder
             onCommandParsed={(data) => {
               // Auto-fill the form with parsed data
-              if (data.voiceCommand?.parsedData) {
-                const parsed = data.voiceCommand.parsedData;
+              const parsed = data.voiceCommand?.parsedData || data.parsedData;
+              if (parsed) {
                 const updatedForm = {
                   ...form,
                   amount: parsed.amount?.toString() || form.amount,
@@ -150,6 +150,7 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                   account: parsed.account || form.account
                 };
 
+                setForm(updatedForm);
                 // Auto-submit immediately with the parsed data
                 handleSave({ preventDefault: () => {} }, updatedForm);
                 toast.success('Form auto-filled from voice command! Submitting...');

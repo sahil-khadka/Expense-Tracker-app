@@ -16,9 +16,14 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
     note: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     if (show) {
-      setForm((s) => ({ ...s, date: new Date().toISOString().slice(0, 10) }));
+      setForm((s) => ({
+        ...s,
+        date: new Date().toISOString().slice(0, 10),
+      }));
     }
   }, [show]);
 
@@ -26,8 +31,6 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
   };
-
-  const [loading, setLoading] = useState(false);
 
   const handleSave = async (e, voiceFormData = null) => {
     e.preventDefault();
@@ -43,6 +46,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
     try {
       function toApiIso(dateStr) {
         const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/;
+
         if (typeof dateStr === "string" && isoDateOnly.test(dateStr)) {
           const [y, m, d] = dateStr.split("-").map((n) => parseInt(n, 10));
           return new Date(y, m - 1, d, 12, 0, 0).toISOString();
@@ -50,18 +54,18 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
 
         try {
           return new Date(dateStr).toISOString();
-        } catch (e) {
+        } catch {
           return dateStr;
         }
       }
-
-      const isoDate = toApiIso(currentForm.date);
 
       const normalizeCategory = (val) => {
         if (!val) return "";
         const t = String(val).trim().toLowerCase();
         return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
       };
+
+      const isoDate = toApiIso(currentForm.date);
 
       const payload = {
         date: isoDate,
@@ -76,12 +80,11 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
         type: "Expense",
       };
 
-      console.log("Expense: sending payload", payload);
-
       const token = getToken();
-      const config = { withCredentials: true, headers: {} };
-
-      if (token) config.headers.Authorization = `Bearer ${token}`;
+      const config = {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      };
 
       if (typeof onOptimisticSave === "function") {
         onOptimisticSave(payload.amount);
@@ -102,8 +105,6 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
         note: "",
       });
     } catch (err) {
-      console.error("Expense save error:", err, err?.response?.data);
-
       let msg = "Failed to save expense";
 
       const isInsufficientBalance =
@@ -120,16 +121,13 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
 
         try {
           if (typeof detail === "object") detail = JSON.stringify(detail);
-        } catch (e) {}
+        } catch {}
 
-        msg = `Request failed with status ${status}${detail ? ": " + detail : ""}`;
+        msg = `Request failed with status ${status}${
+          detail ? ": " + detail : ""
+        }`;
       } else if (err?.message) {
         msg = err.message;
-      }
-
-      if (msg === "Network Error") {
-        msg =
-          "Network Error: could not reach http://localhost:5000. Is the backend running and CORS configured?";
       }
 
       toast.error(msg);
@@ -159,9 +157,9 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
 
           <VoiceRecorder
             onCommandParsed={(data) => {
-              if (data.voiceCommand?.parsedData) {
-                const parsed = data.voiceCommand.parsedData;
+              const parsed = data?.voiceCommand?.parsedData || data?.parsedData;
 
+              if (parsed) {
                 const updatedForm = {
                   ...form,
                   amount: parsed.amount?.toString() || form.amount,
@@ -170,7 +168,9 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   account: parsed.account || form.account,
                 };
 
+                setForm(updatedForm);
                 handleSave({ preventDefault: () => {} }, updatedForm);
+
                 toast.success(
                   "Form auto-filled from voice command! Submitting...",
                 );
@@ -192,7 +192,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   name="date"
                   value={form.date}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
 
@@ -206,7 +206,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   value={form.amount}
                   onChange={handleChange}
                   placeholder="Rs. 0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
             </div>
@@ -222,7 +222,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   value={form.category}
                   onChange={handleChange}
                   placeholder="e.g., Food, Travel"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
 
@@ -234,7 +234,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   name="account"
                   value={form.account}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition appearance-none cursor-pointer bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
                   <option value="Cash">Cash</option>
                   <option value="Bank">Bank</option>
@@ -252,7 +252,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                 value={form.note}
                 onChange={handleChange}
                 placeholder="Add a note (optional)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold rounded-lg hover:from-emerald-600 hover:to-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+            className="w-full mt-6 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold rounded-lg"
           >
             {loading ? "Saving..." : "Record Expense"}
           </button>
