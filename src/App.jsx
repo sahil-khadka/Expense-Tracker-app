@@ -7,7 +7,9 @@ import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
 import OtpVerification from "./pages/OtpVerification";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Ewallet from "./pages/Ewallet";
 import SetGoals from "./pages/SetGoals";
@@ -22,7 +24,9 @@ function App() {
   const hideNavbarRoutes = [
     "/login",
     "/signup",
+    "/forgot-password",
     "/otp",
+    "/reset-password",
     "/dashboard",
     "/e-wallet",
     "/set-goals",
@@ -74,10 +78,26 @@ function App() {
             }
           />
           <Route
+            path="/forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            }
+          />
+          <Route
             path="/otp"
             element={
               <PublicRoute>
                 <OtpVerification />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PublicRoute>
+                <ResetPassword />
               </PublicRoute>
             }
           />

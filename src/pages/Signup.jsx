@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import sideImage from "../assets/log&sign.png";
 import axios from "../constants/api.js";
 import { toast } from "react-toastify";
-import BackHomeButton from "../components/BackHomeButton.jsx";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +25,7 @@ export default function Signup() {
       toast("Passwords do not match", { type: "error" });
       return;
     }
-
+    
     setLoading(true);
 
     try {
@@ -88,7 +87,6 @@ export default function Signup() {
 
   return (
     <div className="flex h-screen w-full bg-white font-sans text-gray-800 overflow-hidden">
-      <BackHomeButton />
       {/* Left Panel - Image */}
       <div className="hidden md:block md:w-1/2 relative bg-[#f4f4f4]">
         <img
