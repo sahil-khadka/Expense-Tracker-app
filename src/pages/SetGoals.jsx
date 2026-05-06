@@ -236,7 +236,9 @@ const GoalCard = ({ goal, onDeposit, onEdit, onDelete }) => {
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm border p-5 flex flex-col gap-4 hover:shadow-md transition-all ${isComplete ? "border-emerald-200" : "border-gray-100"}`}
+      className={`bg-white rounded-2xl shadow-sm border-2 p-5 flex flex-col gap-4 hover:shadow-md transition-all ${
+        isComplete ? "border-emerald-300" : "border-emerald-100"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -379,7 +381,11 @@ export default function SetGoals() {
   const fetchGoals = async () => {
     try {
       const res = await axios.get("/goals", authConfig());
-      setGoals(res?.data?.data || []);
+      // Sort newest first so the most recently created goal appears at the top
+      const data = (res?.data?.data || [])
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setGoals(data);
     } catch {
       toast.error("Failed to fetch goals");
     } finally {
@@ -430,11 +436,19 @@ export default function SetGoals() {
   ).length;
 
   const toggleSort = (field) => {
-    if (sortBy === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
+    if (sortBy === field) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
       setSortBy(field);
-      setSortDir("asc");
+
+      // Progress should start from highest first
+      if (field === "progress") {
+        setSortDir("desc");
+      } else {
+        setSortDir("asc");
+      }
     }
+
     setPage(1);
   };
 
@@ -525,18 +539,38 @@ export default function SetGoals() {
     }
   };
 
-  const SortBtn = ({ field, label }) => (
-    <button
-      onClick={() => toggleSort(field)}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${sortBy === field ? "bg-[#3d8753] text-white border-[#3d8753]" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
-    >
-      {label}
-      <ArrowUpDown className="w-3 h-3" />
-      {sortBy === field && (
+  const SortBtn = ({ field, label }) => {
+    const getDirectionLabel = () => {
+      if (sortBy !== field) return null;
+
+      if (field === "progress") {
+        return (
+          <span className="text-[10px]">
+            {sortDir === "desc" ? "Highest" : "Lowest"}
+          </span>
+        );
+      }
+
+      return (
         <span className="text-[10px]">{sortDir === "asc" ? "A" : "D"}</span>
-      )}
-    </button>
-  );
+      );
+    };
+
+    return (
+      <button
+        onClick={() => toggleSort(field)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+          sortBy === field
+            ? "bg-[#3d8753] text-white border-[#3d8753]"
+            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        }`}
+      >
+        {label}
+        <ArrowUpDown className="w-3 h-3" />
+        {getDirectionLabel()}
+      </button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#dce7d7] font-sans flex flex-col overflow-hidden">
