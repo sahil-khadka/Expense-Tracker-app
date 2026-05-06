@@ -1,8 +1,9 @@
 import axios from "axios";
 import { getToken } from "./auth.js";
 
-const BASE =  "http://localhost:5000/api";
+// const BASE =  "http://localhost:5000/api" || "https://sasquatch-rickety-imaging.ngrok-free.dev/api";
 
+const BASE = "http://localhost:5000/api";
 axios.defaults.baseURL = BASE;
 axios.defaults.withCredentials = true;
 

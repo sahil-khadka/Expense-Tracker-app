@@ -42,11 +42,11 @@ const VoiceRecorder = ({ onTranscript, onCommandParsed, disabled }) => {
         stopRecording();
         toast.info('Recording timed out. Try again.');
       }
-    }, 15000); // 15 second timeout
+    }, 8000); // 8 second timeout
 
     recognitionRef.current.onstart = () => {
       setIsRecording(true);
-      toast.info('🎤 Listening... Speak your command now (15s timeout)');
+      toast.info('🎤 Listening... Speak your command now (8s timeout)');
     };
 
     recognitionRef.current.onresult = async (event) => {
@@ -61,10 +61,12 @@ const VoiceRecorder = ({ onTranscript, onCommandParsed, disabled }) => {
       if (onCommandParsed) {
         setIsProcessing(true);
         try {
+          console.log("before")
           const { data } = await axios.post('/voice-command', {
             voiceText: transcript,
           });
-
+console.log("after")
+console.log(data)
           if (data.success) {
             toast.success('Voice command processed successfully!');
             onCommandParsed(data);

@@ -53,7 +53,7 @@ const launchConfetti = () => {
     gravity: 0.5,
     scalar: 1.8,
     drift: 0.5,
-    ticks: 100,
+    ticks: 300,
   });
 
   confetti({
@@ -65,7 +65,7 @@ const launchConfetti = () => {
     gravity: 0.5,
     scalar: 1.8,
     drift: 0,
-    ticks: 100,
+    ticks: 300,
   });
 
   confetti({
@@ -77,7 +77,7 @@ const launchConfetti = () => {
     gravity: 0.5,
     scalar: 1.8,
     drift: -0.5,
-    ticks: 100,
+    ticks: 300,
   });
 
   // second wave at 0.8s
@@ -90,9 +90,9 @@ const launchConfetti = () => {
       colors,
       gravity: 0.4,
       scalar: 2,
-      ticks: 100,
+      ticks: 300,
     });
-  }, 100);
+  }, 800);
 
   // third wave at 1.6s
   setTimeout(() => {
@@ -116,7 +116,7 @@ const launchConfetti = () => {
       scalar: 1.8,
       ticks: 100,
     });
-  }, 100);
+  }, 0);
 };
 
 // ── Small reusable components ──────────────────────────────
