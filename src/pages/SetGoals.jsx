@@ -60,7 +60,7 @@ const launchConfetti = () => {
     gravity: 1,
     scalar: 1.8,
     drift: 0.5,
-    ticks: 300,
+    ticks: 250,
   });
 
   confetti({
@@ -72,7 +72,7 @@ const launchConfetti = () => {
     gravity: 1,
     scalar: 1.8,
     drift: 0,
-    ticks: 300,
+    ticks: 250,
   });
 
   confetti({
@@ -84,7 +84,7 @@ const launchConfetti = () => {
     gravity: 1,
     scalar: 1.8,
     drift: -0.5,
-    ticks: 300,
+    ticks: 250,
   });
 
   // second wave at 0.8s
@@ -97,7 +97,7 @@ const launchConfetti = () => {
       colors,
       gravity: 1,
       scalar: 2,
-      ticks: 300,
+      ticks: 250,
     });
   }, 800);
 
@@ -111,7 +111,7 @@ const launchConfetti = () => {
       colors,
       gravity: 1,
       scalar: 1.8,
-      ticks: 100,
+      ticks: 250,
     });
     confetti({
       particleCount: 20,
@@ -121,7 +121,7 @@ const launchConfetti = () => {
       colors,
       gravity: 1,
       scalar: 1.8,
-      ticks: 100,
+      ticks: 250,
     });
   }, 0);
 };
