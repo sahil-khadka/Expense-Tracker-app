@@ -41,7 +41,14 @@ const btnSecondary =
 
 // ── Confetti — drops from the very top of the screen ──────
 const launchConfetti = () => {
-  const colors = ["#2d6a3f", "#52a067", "#f59e0b", "#3b82f6", "#ec4899"];
+  const colors = [
+    "#2d6a3f",
+    "#52a067",
+    "#f59e0b",
+    "#3b82f6",
+    "#ec4899",
+    "#2e83b5",
+  ];
 
   // first wave - all 3 positions at once
   confetti({
@@ -50,7 +57,7 @@ const launchConfetti = () => {
     spread: 70,
     origin: { x: 0, y: 0 },
     colors,
-    gravity: 0.5,
+    gravity: 1,
     scalar: 1.8,
     drift: 0.5,
     ticks: 300,
@@ -62,7 +69,7 @@ const launchConfetti = () => {
     spread: 100,
     origin: { x: 0.5, y: 0 },
     colors,
-    gravity: 0.5,
+    gravity: 1,
     scalar: 1.8,
     drift: 0,
     ticks: 300,
@@ -74,7 +81,7 @@ const launchConfetti = () => {
     spread: 70,
     origin: { x: 1, y: 0 },
     colors,
-    gravity: 0.5,
+    gravity: 1,
     scalar: 1.8,
     drift: -0.5,
     ticks: 300,
@@ -88,7 +95,7 @@ const launchConfetti = () => {
       spread: 120,
       origin: { x: 0.5, y: 0 },
       colors,
-      gravity: 0.4,
+      gravity: 1,
       scalar: 2,
       ticks: 300,
     });
@@ -102,7 +109,7 @@ const launchConfetti = () => {
       spread: 80,
       origin: { x: 0.2, y: 0 },
       colors,
-      gravity: 0.4,
+      gravity: 1,
       scalar: 1.8,
       ticks: 100,
     });
@@ -112,7 +119,7 @@ const launchConfetti = () => {
       spread: 80,
       origin: { x: 0.8, y: 0 },
       colors,
-      gravity: 0.4,
+      gravity: 1,
       scalar: 1.8,
       ticks: 100,
     });
