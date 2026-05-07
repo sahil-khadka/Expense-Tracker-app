@@ -79,37 +79,11 @@ function StatCard({ label, value, sub, up, color }) {
         minWidth: 0,
       }}
     >
-<<<<<<< HEAD
       <span style={{ fontSize: 12, fontWeight: 600, color: "#9ca3af", letterSpacing: "0.08em", textTransform: "uppercase" }}>
         {label}
       </span>
       <span style={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>Rs. {fmt(value)}</span>
       <span style={{ fontSize: 12, color: up ? "#16a34a" : "#dc2626", display: "flex", alignItems: "center", gap: 4 }}>
-=======
-      <span
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: "#9ca3af",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
-      <span style={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>
-        Rs. {fmt(value)}
-      </span>
-      <span
-        style={{
-          fontSize: 12,
-          color: up ? "#16a34a" : "#dc2626",
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-        }}
-      >
->>>>>>> sahil
         {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
         {sub}
       </span>
@@ -134,13 +108,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchExpenseStats = async () => {
       try {
-<<<<<<< HEAD
         const res = await axios.get("/filterPieChart?filter=monthly", { withCredentials: true });
-=======
-        const res = await axios.get("/filterPieChart?filter=monthly", {
-          withCredentials: true,
-        });
->>>>>>> sahil
         setServerOnline(true);
         const payload = res?.data?.data || res?.data;
         const agg = payload?.AggregationResult || payload?.Aggregation || [];
@@ -149,13 +117,7 @@ export default function Dashboard() {
             category: it._id || it.category || it.categoryName || "Other",
             amount: it.total || it.amount || 0,
           }));
-<<<<<<< HEAD
           const total = payload?.totalExpense || statsArray.reduce((s, i) => s + (i.amount || 0), 0);
-=======
-          const total =
-            payload?.totalExpense ||
-            statsArray.reduce((s, i) => s + (i.amount || 0), 0);
->>>>>>> sahil
           statsArray.sort((a, b) => b.amount - a.amount);
           setExpenseStats(statsArray);
           setTotalExpense(total);
@@ -167,13 +129,7 @@ export default function Dashboard() {
 
     const fetchMonthlySummary = async () => {
       try {
-<<<<<<< HEAD
         const res = await axios.get("/monthlySummary", { withCredentials: true });
-=======
-        const res = await axios.get("/monthlySummary", {
-          withCredentials: true,
-        });
->>>>>>> sahil
         setServerOnline(true);
         const payload = res?.data?.data || {};
         const income = Number(payload?.totalIncome);
@@ -190,13 +146,7 @@ export default function Dashboard() {
 
     const fetchBarData = async () => {
       try {
-<<<<<<< HEAD
         const res = await axios.get("/filterBarchart", { withCredentials: true });
-=======
-        const res = await axios.get("/filterBarchart", {
-          withCredentials: true,
-        });
->>>>>>> sahil
         setServerOnline(true);
         setBarData(res?.data?.data || res?.data || null);
       } catch {
@@ -207,14 +157,7 @@ export default function Dashboard() {
     const fetchWallet = async () => {
       try {
         const token = getToken();
-<<<<<<< HEAD
         const config = { withCredentials: true, headers: token ? { Authorization: `Bearer ${token}` } : {} };
-=======
-        const config = {
-          withCredentials: true,
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        };
->>>>>>> sahil
 
         try {
           const walletRes = await axios.post("/viewOwnwallet", {}, config);
@@ -230,12 +173,7 @@ export default function Dashboard() {
               .map((val) => Number(val))
               .find((val) => Number.isFinite(val)) ?? 0;
           setWalletBalance(parsedBalance);
-<<<<<<< HEAD
           const rawName = walletData?.userID?.userName || walletRes?.data?.userName;
-=======
-          const rawName =
-            walletData?.userID?.userName || walletRes?.data?.userName;
->>>>>>> sahil
           if (rawName) setUserName(rawName);
         } catch {}
 
@@ -244,18 +182,12 @@ export default function Dashboard() {
         if (Array.isArray(res?.data)) data = res.data;
         else if (Array.isArray(res?.data?.data)) data = res.data.data;
         else if (Array.isArray(res?.data?.expenses)) data = res.data.expenses;
-<<<<<<< HEAD
         else if (Array.isArray(res?.data?.transactions)) data = res.data.transactions;
-=======
-        else if (Array.isArray(res?.data?.transactions))
-          data = res.data.transactions;
->>>>>>> sahil
         else {
           const v = Object.values(res?.data || {}).find(Array.isArray);
           if (v) data = v;
         }
 
-<<<<<<< HEAD
         const norm = data.map((it) => ({
           date: it.Date || it.date || it.createdAt || "",
           category: it.category || it.categoryName || "",
@@ -263,22 +195,6 @@ export default function Dashboard() {
           amount: Number(it.amount) || Number(it.total) || 0,
         }))
         .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-=======
-        const norm = data
-          .map((it) => ({
-            date:
-              it.Date ||
-              it.date ||
-              it.transactionDate ||
-              it.transaction_date ||
-              it.createdAt ||
-              "",
-            category: it.category || it.categoryName || "",
-            type: it.type || it.transactionType || "",
-            amount: Number(it.amount) || Number(it.total) || 0,
-          }))
-          .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
->>>>>>> sahil
 
         setTransactions(norm);
 
@@ -306,19 +222,7 @@ export default function Dashboard() {
   }, []);
 
   /* ── pie data ── */
-<<<<<<< HEAD
   const pieColors = ["#16a34a", "#eab308", "#3b82f6", "#ef4444", "#a855f7", "#ec4899", "#f97316"];
-=======
-  const pieColors = [
-    "#16a34a",
-    "#eab308",
-    "#3b82f6",
-    "#ef4444",
-    "#a855f7",
-    "#ec4899",
-    "#f97316",
-  ];
->>>>>>> sahil
   let acc = 0;
   const gradientStops = expenseStats
     .map((s, i) => {
@@ -339,20 +243,8 @@ export default function Dashboard() {
     const pct = (stat.amount / (totalExpense || 1)) * 100;
     const mid = accSlice + pct / 2;
     accSlice += pct;
-<<<<<<< HEAD
     const angle = (mid / 100) * 2 * Math.PI - Math.PI / 2 - (45 * Math.PI) / 180;
     return { ...stat, percentage: pct, x: Math.cos(angle) * 67, y: Math.sin(angle) * 67, color: pieColors[idx % pieColors.length] };
-=======
-    const angle =
-      (mid / 100) * 2 * Math.PI - Math.PI / 2 - (45 * Math.PI) / 180;
-    return {
-      ...stat,
-      percentage: pct,
-      x: Math.cos(angle) * 67,
-      y: Math.sin(angle) * 67,
-      color: pieColors[idx % pieColors.length],
-    };
->>>>>>> sahil
   });
 
   const handleLogout = async () => {
@@ -428,29 +320,10 @@ export default function Dashboard() {
     statRow: { display: "flex", gap: 16, marginBottom: 28 },
 
     /* section title */
-<<<<<<< HEAD
     sectionTitle: { fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 14, letterSpacing: "-0.01em" },
 
     /* top row */
     topRow: { display: "grid", gridTemplateColumns: "1fr 1.45fr", gap: 24, marginBottom: 28, alignItems: "start" },
-=======
-    sectionTitle: {
-      fontSize: 15,
-      fontWeight: 700,
-      color: "#111827",
-      marginBottom: 14,
-      letterSpacing: "-0.01em",
-    },
-
-    /* top row */
-    topRow: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1.45fr",
-      gap: 24,
-      marginBottom: 28,
-      alignItems: "start",
-    },
->>>>>>> sahil
 
     /* card shell */
     card: {
@@ -509,44 +382,17 @@ export default function Dashboard() {
     },
   };
 
-<<<<<<< HEAD
   const todayStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-=======
-  const todayStr = new Date().toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
->>>>>>> sahil
 
   // Digital clock state
   const [clock, setClock] = useState(() => {
     const now = new Date();
-<<<<<<< HEAD
     return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-=======
-    return now.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
->>>>>>> sahil
   });
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
-<<<<<<< HEAD
       setClock(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-=======
-      setClock(
-        now.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
-      );
->>>>>>> sahil
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -556,32 +402,9 @@ export default function Dashboard() {
       <UserNavbar />
 
       {!serverOnline && (
-<<<<<<< HEAD
         <div style={{ background: "#dc2626", color: "#fff", textAlign: "center", padding: "8px 16px", fontSize: 13 }}>
           ⚠ Server unreachable — check backend.{" "}
           <button onClick={() => window.location.reload()} style={{ textDecoration: "underline", background: "none", border: "none", color: "#fff", cursor: "pointer" }}>
-=======
-        <div
-          style={{
-            background: "#dc2626",
-            color: "#fff",
-            textAlign: "center",
-            padding: "8px 16px",
-            fontSize: 13,
-          }}
-        >
-          ⚠ Server unreachable — check backend.{" "}
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              textDecoration: "underline",
-              background: "none",
-              border: "none",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
->>>>>>> sahil
             Retry
           </button>
         </div>
@@ -592,10 +415,6 @@ export default function Dashboard() {
 
         <main style={S.main}>
           <div style={S.inner}>
-<<<<<<< HEAD
-
-=======
->>>>>>> sahil
             {/* ── Greeting Banner ── */}
             <div style={S.greetBanner}>
               <div style={S.greetLeft}>
@@ -606,7 +425,6 @@ export default function Dashboard() {
                   <p style={S.greetTitle}>
                     {greetLabel},{" "}
                     <span style={{ color: "#16a34a" }}>
-<<<<<<< HEAD
                       {String(userName).charAt(0).toUpperCase() + String(userName).slice(1)}
                     </span>{" "}
                    
@@ -617,93 +435,24 @@ export default function Dashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                 <span style={S.greetDate}>{todayStr}</span>
                 <span style={{ ...S.greetDate, fontSize: 16, fontWeight: 600, background: '#f3f4f6', color: 'red', border: 'none', padding: '4px 14px' }}>{clock}</span>
-=======
-                      {String(userName).charAt(0).toUpperCase() +
-                        String(userName).slice(1)}
-                    </span>{" "}
-                  </p>
-                  <p style={S.greetSub}>
-                    Here's your financial overview for this month.
-                  </p>
-                </div>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-end",
-                  gap: 4,
-                }}
-              >
-                <span style={S.greetDate}>{todayStr}</span>
-                <span
-                  style={{
-                    ...S.greetDate,
-                    fontSize: 16,
-                    fontWeight: 600,
-                    background: "#f3f4f6",
-                    color: "red",
-                    border: "none",
-                    padding: "4px 14px",
-                  }}
-                >
-                  {clock}
-                </span>
->>>>>>> sahil
               </div>
             </div>
 
             {/* ── Stat Strip ── */}
             <div style={S.statRow}>
-<<<<<<< HEAD
               <StatCard label="Wallet Balance" value={walletBalance} sub="Current balance" up={true} color="#16a34a" />
               <StatCard label="Total Income" value={totalIncome} sub="This month" up={true} color="#3b82f6" />
               <StatCard label="Total Expenses" value={totalExpense} sub="This month" up={false} color="#ef4444" />
               <StatCard label="Net Savings" value={Math.max(0, totalIncome - totalExpense)} sub="Income − Expenses" up={totalIncome >= totalExpense} color="#a855f7" />
-=======
-              <StatCard
-                label="Wallet Balance"
-                value={walletBalance}
-                sub="Current balance"
-                up={true}
-                color="#16a34a"
-              />
-              <StatCard
-                label="Total Income"
-                value={totalIncome}
-                sub="This month"
-                up={true}
-                color="#3b82f6"
-              />
-              <StatCard
-                label="Total Expenses"
-                value={totalExpense}
-                sub="This month"
-                up={false}
-                color="#ef4444"
-              />
-              <StatCard
-                label="Net Savings"
-                value={Math.max(0, totalIncome - totalExpense)}
-                sub="Income − Expenses"
-                up={totalIncome >= totalExpense}
-                color="#a855f7"
-              />
->>>>>>> sahil
             </div>
 
             {/* ── Top Row: Card + Transactions ── */}
             <div style={S.topRow}>
-<<<<<<< HEAD
-
-=======
->>>>>>> sahil
               {/* My Card */}
               <div>
                 <p style={S.sectionTitle}>My Card</p>
                 <div style={S.myCardGrad}>
                   {/* decorative circles */}
-<<<<<<< HEAD
                   <div style={{ position: "absolute", top: -30, right: -30, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
                   <div style={{ position: "absolute", bottom: -20, right: 40, width: 90, height: 90, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
 
@@ -715,78 +464,11 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "6px 10px", fontSize: 11, fontWeight: 600, backdropFilter: "blur(4px)" }}>
-=======
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -30,
-                      right: -30,
-                      width: 130,
-                      height: 130,
-                      borderRadius: "50%",
-                      background: "rgba(255,255,255,0.07)",
-                    }}
-                  />
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: -20,
-                      right: 40,
-                      width: 90,
-                      height: 90,
-                      borderRadius: "50%",
-                      background: "rgba(255,255,255,0.05)",
-                    }}
-                  />
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      marginBottom: 18,
-                    }}
-                  >
-                    <div>
-                      <p
-                        style={{
-                          fontSize: 11,
-                          opacity: 0.7,
-                          margin: 0,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Available Balance
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 28,
-                          fontWeight: 800,
-                          margin: "4px 0 0",
-                          letterSpacing: "-0.02em",
-                        }}
-                      >
-                        Rs. {fmt(walletBalance)}
-                      </p>
-                    </div>
-                    <div
-                      style={{
-                        background: "rgba(255,255,255,0.2)",
-                        borderRadius: 10,
-                        padding: "6px 10px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                        backdropFilter: "blur(4px)",
-                      }}
-                    >
->>>>>>> sahil
                       ACTIVE
                     </div>
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-<<<<<<< HEAD
                     <p style={{ fontSize: 11, opacity: 0.6, margin: "0 0 2px", letterSpacing: "0.06em", textTransform: "uppercase" }}>Card Holder</p>
                     <p style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>
                       {String(userName).charAt(0).toUpperCase() + String(userName).slice(1)}
@@ -797,78 +479,12 @@ export default function Dashboard() {
                     <div>
                       <p style={{ fontSize: 11, opacity: 0.6, margin: "0 0 2px", letterSpacing: "0.06em", textTransform: "uppercase" }}>Card Number</p>
                       <p style={{ fontSize: 14, fontWeight: 600, margin: 0, letterSpacing: "0.12em" }}>
-=======
-                    <p
-                      style={{
-                        fontSize: 11,
-                        opacity: 0.6,
-                        margin: "0 0 2px",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Card Holder
-                    </p>
-                    <p style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>
-                      {String(userName).charAt(0).toUpperCase() +
-                        String(userName).slice(1)}
-                    </p>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div>
-                      <p
-                        style={{
-                          fontSize: 11,
-                          opacity: 0.6,
-                          margin: "0 0 2px",
-                          letterSpacing: "0.06em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Card Number
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 600,
-                          margin: 0,
-                          letterSpacing: "0.12em",
-                        }}
-                      >
->>>>>>> sahil
                         08923 ******* 1267
                       </p>
                     </div>
                     <div style={{ display: "flex" }}>
-<<<<<<< HEAD
                       <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,200,0,0.7)", marginRight: -10 }} />
                       <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,100,0,0.7)" }} />
-=======
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: "50%",
-                          background: "rgba(255,200,0,0.7)",
-                          marginRight: -10,
-                        }}
-                      />
-                      <div
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: "50%",
-                          background: "rgba(255,100,0,0.7)",
-                        }}
-                      />
->>>>>>> sahil
                     </div>
                   </div>
                 </div>
@@ -876,67 +492,23 @@ export default function Dashboard() {
 
               {/* Recent Transactions */}
               <div>
-<<<<<<< HEAD
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                   <p style={{ ...S.sectionTitle, marginBottom: 0 }}>Recent Transactions</p>
                   <Link to="/history" style={{ fontSize: 12, fontWeight: 600, color: "#16a34a", textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
-=======
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 14,
-                  }}
-                >
-                  <p style={{ ...S.sectionTitle, marginBottom: 0 }}>
-                    Recent Transactions
-                  </p>
-                  <Link
-                    to="/history"
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#16a34a",
-                      textDecoration: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
->>>>>>> sahil
                     View All <ArrowUpRight size={13} />
                   </Link>
                 </div>
                 <div style={S.card}>
                   {transactions.length === 0 ? (
-<<<<<<< HEAD
                     <div style={{ padding: "32px 22px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>No transactions yet.</div>
                   ) : (
                     transactions.slice(0, 3).map((item, i) => {
                       const isExp = String(item.type || "").toLowerCase() === "expense";
-=======
-                    <div
-                      style={{
-                        padding: "32px 22px",
-                        textAlign: "center",
-                        color: "#9ca3af",
-                        fontSize: 13,
-                      }}
-                    >
-                      No transactions yet.
-                    </div>
-                  ) : (
-                    transactions.slice(0, 3).map((item, i) => {
-                      const isExp =
-                        String(item.type || "").toLowerCase() === "expense";
->>>>>>> sahil
                       return (
                         <div
                           key={i}
                           style={{
                             ...S.txnItem,
-<<<<<<< HEAD
                             borderBottom: i < Math.min(transactions.length, 3) - 1 ? "1px solid #f3f4f6" : "none",
                           }}
                           onMouseEnter={(e) => (e.currentTarget.style.background = "#f9fafb")}
@@ -952,65 +524,6 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: isExp ? "#dc2626" : "#16a34a" }}>
-=======
-                            borderBottom:
-                              i < Math.min(transactions.length, 3) - 1
-                                ? "1px solid #f3f4f6"
-                                : "none",
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#f9fafb")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "transparent")
-                          }
-                        >
-                          <div
-                            style={{ display: "flex", alignItems: "center" }}
-                          >
-                            <div
-                              style={{
-                                ...S.txnIconWrap,
-                                background: isExp ? "#fef2f2" : "#f0fdf4",
-                              }}
-                            >
-                              {isExp ? (
-                                <TrendingDown size={17} color="#dc2626" />
-                              ) : (
-                                <TrendingUp size={17} color="#16a34a" />
-                              )}
-                            </div>
-                            <div>
-                              <p
-                                style={{
-                                  margin: 0,
-                                  fontWeight: 600,
-                                  fontSize: 14,
-                                  color: "#111827",
-                                }}
-                              >
-                                {item.category || "—"}
-                              </p>
-                              <p
-                                style={{
-                                  margin: 0,
-                                  fontSize: 12,
-                                  color: "#9ca3af",
-                                }}
-                              >
-                                {formatDateLocal(item.date)}
-                              </p>
-                            </div>
-                          </div>
-                          <p
-                            style={{
-                              margin: 0,
-                              fontWeight: 700,
-                              fontSize: 14,
-                              color: isExp ? "#dc2626" : "#16a34a",
-                            }}
-                          >
->>>>>>> sahil
                             {isExp ? "−" : "+"}Rs. {fmt(item.amount)}
                           </p>
                         </div>
@@ -1027,14 +540,7 @@ export default function Dashboard() {
               <div>
                 <p style={S.sectionTitle}>Weekly Activity</p>
                 <div style={S.chartCard}>
-<<<<<<< HEAD
                   <WeeklyActivity transactions={transactions} barData={barData} />
-=======
-                  <WeeklyActivity
-                    transactions={transactions}
-                    barData={barData}
-                  />
->>>>>>> sahil
                 </div>
               </div>
 
@@ -1052,10 +558,6 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> sahil
           </div>
         </main>
       </div>
@@ -1063,8 +565,4 @@ export default function Dashboard() {
       <ChatWidget />
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> sahil

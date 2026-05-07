@@ -43,26 +43,10 @@ export default function Login() {
         // persist login according to remember checkbox
         setAuth(true, remember);
         // store token if backend returned one (supports both 'token' and 'accessToken')
-<<<<<<< HEAD
         const token =
           response?.data?.token ||
           response?.data?.accessToken ||
           response?.data?.data?.token;
-=======
-        const headerAuth =
-          response?.headers?.authorization || response?.headers?.Authorization;
-        const headerToken =
-          typeof headerAuth === "string"
-            ? headerAuth.replace(/^Bearer\s+/i, "").trim()
-            : null;
-        const token =
-          response?.data?.token ||
-          response?.data?.accessToken ||
-          response?.data?.data?.token ||
-          response?.data?.data?.accessToken ||
-          response?.data?.jwt ||
-          headerToken;
->>>>>>> sahil
         if (token) {
           setToken(token, remember);
         }

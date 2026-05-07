@@ -119,17 +119,7 @@ export default function Ewallet() {
       if (Array.isArray(data)) {
         const norm = data
           .map((it) => ({
-<<<<<<< HEAD
             date: it.Date || it.date || it.createdAt || "",
-=======
-            date:
-              it.Date ||
-              it.date ||
-              it.transactionDate ||
-              it.transaction_date ||
-              it.createdAt ||
-              "",
->>>>>>> sahil
             category: it.category || it.categoryName || "Other",
             type: it.type || it.transactionType || "",
             amount: Number(it.amount) || Number(it.total) || 0,
@@ -176,7 +166,6 @@ export default function Ewallet() {
   useEffect(() => {
     const token = getToken();
 
-<<<<<<< HEAD
     if (!token) {
       navigate("/", { replace: true });
       return;
@@ -186,12 +175,6 @@ export default function Ewallet() {
 
     if (storedName) setUserName(storedName);
     else {
-=======
-    const storedName = getUserName();
-
-    if (storedName) setUserName(storedName);
-    else if (token) {
->>>>>>> sahil
       const name = decodeTokenName(token);
       if (name) setUserName(name);
     }
@@ -403,7 +386,4 @@ export default function Ewallet() {
     </div>
   );
 }
-<<<<<<< HEAD
   
-=======
->>>>>>> sahil

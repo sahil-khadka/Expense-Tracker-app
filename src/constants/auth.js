@@ -21,20 +21,10 @@ export function setAuth(isLoggedIn, remember = false) {
 }
 
 export function getAuth() {
-<<<<<<< HEAD
   return (
     localStorage.getItem(AUTH_STORAGE_KEY) === "true" ||
     sessionStorage.getItem(AUTH_STORAGE_KEY) === "true"
   );
-=======
-  const hasFlag =
-    localStorage.getItem(AUTH_STORAGE_KEY) === "true" ||
-    sessionStorage.getItem(AUTH_STORAGE_KEY) === "true";
-  if (!hasFlag) return false;
-  // Most API endpoints require a Bearer token; avoid treating users as
-  // authenticated if the token is missing.
-  return Boolean(getToken());
->>>>>>> sahil
 }
 
 export function clearAuth() {

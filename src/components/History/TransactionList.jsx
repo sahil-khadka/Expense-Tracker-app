@@ -91,21 +91,8 @@ export default function TransactionList() {
 
       const norm = data.map((t) => ({
         id: t._id, // Assuming the transaction object has an _id field
-<<<<<<< HEAD
         date: t.Date || t.date || t.createdAt || "",
         category: normalizeCategory(t.category || t.categoryName || t.raw?.category || ""),
-=======
-        date:
-          t.Date ||
-          t.date ||
-          t.transactionDate ||
-          t.transaction_date ||
-          t.createdAt ||
-          "",
-        category: normalizeCategory(
-          t.category || t.categoryName || t.raw?.category || "",
-        ),
->>>>>>> sahil
         account: t.account || t.accountName || t.raw?.account || "",
         type: t.type || t.transactionType || "",
         amount: t.amount || t.total || 0,
@@ -164,11 +151,7 @@ export default function TransactionList() {
 
       await fetchTransactions();
       setOpenMenu(null);
-<<<<<<< HEAD
       toast.success("Transaction deleted successfully!",{
-=======
-      toast.success("Transaction deleted successfully!", {
->>>>>>> sahil
         autoClose: 1000,
         position: "top-right",
         hideProgressBar: false,
@@ -221,7 +204,6 @@ export default function TransactionList() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageData = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-<<<<<<< HEAD
 const downloadCsv = async () => {
   const result = await Swal.fire({
     title: "Download CSV?",
@@ -254,40 +236,6 @@ const downloadCsv = async () => {
     toast.error("Failed to download CSV file.");
   }
 };
-=======
-  const downloadCsv = async () => {
-    const result = await Swal.fire({
-      title: "Download CSV?",
-      text: "Do you want to download the transaction data as CSV?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#16a34a",
-      cancelButtonColor: "#d1d5db",
-      confirmButtonText: "Download",
-      cancelButtonText: "Cancel",
-      reverseButtons: true,
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      const csv = toCSV(filtered);
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `transactions-${Date.now()}.csv`;
-      a.click();
-
-      URL.revokeObjectURL(url);
-      toast.success("CSV file downloaded successfully.");
-    } catch (err) {
-      console.error("CSV download failed:", err);
-      toast.error("Failed to download CSV file.");
-    }
-  };
->>>>>>> sahil
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
@@ -378,7 +326,6 @@ const downloadCsv = async () => {
                 <Download className="w-4 h-4 " />
                 <span>Download CSV</span>
               </button>
-<<<<<<< HEAD
 <button
   onClick={async () => {
     const result = await Swal.fire({
@@ -431,60 +378,6 @@ const downloadCsv = async () => {
   <Download className="w-4 h-4" />
   <span>Download PDF</span>
 </button>
-=======
-              <button
-                onClick={async () => {
-                  const result = await Swal.fire({
-                    title: "Download Report?",
-                    text: "Do you want to download the PDF report?",
-                    icon: "question",
-                    showCancelButton: true,
-                    confirmButtonColor: "#16a34a",
-                    cancelButtonColor: "#d1d5db",
-                    confirmButtonText: "Download",
-                    cancelButtonText: "Cancel",
-                    reverseButtons: true,
-                  });
-
-                  if (!result.isConfirmed) return;
-
-                  try {
-                    const token = getToken();
-                    const config = {
-                      withCredentials: true,
-                      responseType: "blob",
-                      headers: {},
-                    };
-
-                    if (token) config.headers.Authorization = `Bearer ${token}`;
-
-                    const res = await axios.get("/download", config);
-
-                    const blob = new Blob([res.data], {
-                      type: "application/pdf",
-                    });
-
-                    const url = window.URL.createObjectURL(blob);
-
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `Expense-Report-${Date.now()}.pdf`;
-                    a.click();
-
-                    window.URL.revokeObjectURL(url);
-
-                    toast.success("PDF report downloaded successfully.");
-                  } catch (error) {
-                    console.error("Download failed:", error);
-                    toast.error("Failed to download PDF report.");
-                  }
-                }}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-gray-800 border border-gray-300 rounded-lg shadow-sm hover:bg-gray-100"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download PDF</span>
-              </button>
->>>>>>> sahil
             </div>
           </div>
         </div>
@@ -521,25 +414,11 @@ const downloadCsv = async () => {
                       {formatDate(t.date)}
                     </td>
                     <td className="py-6 align-top w-1/4">
-<<<<<<< HEAD
                       <div className="font-medium text-gray-800">{t.category}</div>
                       <div className="text-xs text-gray-500 mt-1">{t.description}</div>
                     </td>
                     <td className="py-6 align-top w-1/6">
                       <div className="text-sm text-gray-700">{t.account || "-"}</div>
-=======
-                      <div className="font-medium text-gray-800">
-                        {t.category}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {t.description}
-                      </div>
-                    </td>
-                    <td className="py-6 align-top w-1/6">
-                      <div className="text-sm text-gray-700">
-                        {t.account || "-"}
-                      </div>
->>>>>>> sahil
                     </td>
                     <td className="py-6 align-top w-1/4">{t.type}</td>
                     <td className="py-6 align-top w-1/6">

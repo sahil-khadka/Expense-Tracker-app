@@ -32,36 +32,6 @@ const PRIORITY_STYLES = {
   medium: "bg-amber-100 text-amber-700 border border-amber-200",
   low: "bg-emerald-100 text-emerald-700 border border-emerald-200",
 };
-<<<<<<< HEAD
-=======
-
-function deriveTimeframeFromDeadline(deadline) {
-  if (!deadline) return "";
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/;
-  const deadlineDate = dateOnly.test(String(deadline))
-    ? new Date(`${deadline}T12:00:00`)
-    : new Date(deadline);
-  if (Number.isNaN(deadlineDate.getTime())) return "";
-
-  const today = new Date();
-  const startOfToday = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-    12,
-    0,
-    0,
-  );
-  const ms = deadlineDate.getTime() - startOfToday.getTime();
-  const days = Math.max(0, Math.ceil(ms / 86400000));
-
-  // Backend expects an enum value.
-  // Map a closer deadline to a shorter timeframe.
-  if (days <= 7) return "weekly";
-  if (days <= 31) return "monthly";
-  return "yearly";
-}
->>>>>>> sahil
 const inputCls =
   "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#3d8753]/30 focus:border-[#3d8753] transition-all";
 const btnPrimary =
@@ -496,17 +466,7 @@ export default function SetGoals() {
     e.preventDefault();
     setSubmitting(true);
     try {
-<<<<<<< HEAD
       await axios.post("/save-goal", createForm, authConfig());
-=======
-      const payload = {
-        ...createForm,
-        goalName: String(createForm.goalName || "").trim(),
-        targetAmount: Number(createForm.targetAmount),
-        timeframe: deriveTimeframeFromDeadline(createForm.deadline),
-      };
-      await axios.post("/save-goal", payload, authConfig());
->>>>>>> sahil
       toast.success("Goal created!");
       closeModal();
       setCreateForm({

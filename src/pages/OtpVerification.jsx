@@ -1,24 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../constants/api.js";
-<<<<<<< HEAD
 import { setAuth } from "../constants/auth";
-=======
-import { setAuth, setToken, setUserName } from "../constants/auth";
->>>>>>> sahil
 
 export default function OtpVerification() {
   const navigate = useNavigate();
   const location = useLocation();
-<<<<<<< HEAD
   const initialEmail = location.state?.email || localStorage.getItem("otpEmail") || "";
   const initialFlow = location.state?.flow || localStorage.getItem("otpFlow") || "register";
-=======
-  const initialEmail =
-    location.state?.email || localStorage.getItem("otpEmail") || "";
-  const initialFlow =
-    location.state?.flow || localStorage.getItem("otpFlow") || "register";
->>>>>>> sahil
 
   const [email, setEmail] = useState(initialEmail);
   const [flow, setFlow] = useState(initialFlow);
@@ -109,51 +98,11 @@ export default function OtpVerification() {
 
       if (flow === "reset") {
         localStorage.removeItem("otpFlow");
-<<<<<<< HEAD
         setTimeout(() => navigate("/reset-password", { state: { email } }), 1500);
       } else {
         setAuth(true, true);
         localStorage.removeItem("otpFlow");
         setTimeout(() => navigate("/dashboard"), 1500);
-=======
-        setTimeout(
-          () => navigate("/reset-password", { state: { email } }),
-          1500,
-        );
-      } else {
-        // Some backends return a token directly from OTP verification.
-        // If no token is returned, send the user to login to obtain one.
-        const token =
-          data?.token ||
-          data?.accessToken ||
-          data?.data?.token ||
-          data?.data?.accessToken ||
-          data?.jwt ||
-          null;
-
-        localStorage.removeItem("otpFlow");
-
-        if (token) {
-          setAuth(true, true);
-          setToken(token, true);
-          const maybeUser =
-            data?.user || data?.data?.user || data?.data || data;
-          const displayRaw =
-            maybeUser?.userName || maybeUser?.name || maybeUser?.email || null;
-          if (displayRaw) {
-            const display =
-              typeof displayRaw === "string" && displayRaw.includes("@")
-                ? displayRaw.split("@")[0]
-                : displayRaw;
-            setUserName(display, true);
-          }
-          setTimeout(() => navigate("/dashboard"), 1500);
-        } else {
-          // ensure auth flag doesn't remain stuck on without a token
-          setAuth(false);
-          setTimeout(() => navigate("/login", { state: { email } }), 1500);
-        }
->>>>>>> sahil
       }
     } catch (err) {
       setError(
@@ -324,13 +273,7 @@ export default function OtpVerification() {
             <div className="text-center mt-4 text-[13px]">
               <button
                 type="button"
-<<<<<<< HEAD
                 onClick={() => navigate(flow === "register" ? "/signup" : "/login")}
-=======
-                onClick={() =>
-                  navigate(flow === "register" ? "/signup" : "/login")
-                }
->>>>>>> sahil
                 className="text-[#2d6a3f] font-bold hover:underline"
               >
                 ← Back to {flow === "register" ? "Register" : "Login"}

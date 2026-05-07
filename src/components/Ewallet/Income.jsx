@@ -39,7 +39,6 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
     }
     setLoading(true);
     try {
-<<<<<<< HEAD
       function toApiIso(dateStr) {
         const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/;
         if (typeof dateStr === "string" && isoDateOnly.test(dateStr)) {
@@ -55,42 +54,6 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
       }
 
       const isoDate = toApiIso(currentForm.date);
-=======
-      function toApiDateOnly(dateStr) {
-        const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/;
-        if (typeof dateStr === "string" && isoDateOnly.test(dateStr)) {
-          return dateStr;
-        }
-
-        // Support common slash formats too (best-effort)
-        const slash = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-        if (typeof dateStr === "string" && slash.test(dateStr)) {
-          const [a, b, y] = dateStr.split("/").map((n) => parseInt(n, 10));
-          // If first segment > 12 treat as DD/MM/YYYY, else MM/DD/YYYY
-          const dd = a > 12 ? a : b;
-          const mm = a > 12 ? b : a;
-          const pad = (n) => String(n).padStart(2, "0");
-          return `${y}-${pad(mm)}-${pad(dd)}`;
-        }
-
-        try {
-          const dt = new Date(dateStr);
-          if (Number.isNaN(dt.getTime())) return "";
-          const y = dt.getFullYear();
-          const m = String(dt.getMonth() + 1).padStart(2, "0");
-          const d = String(dt.getDate()).padStart(2, "0");
-          return `${y}-${m}-${d}`;
-        } catch {
-          return "";
-        }
-      }
-
-      const dateOnly = toApiDateOnly(currentForm.date);
-      if (!dateOnly) {
-        toast("Please select a valid date", { type: "error" });
-        return;
-      }
->>>>>>> sahil
 
       const normalizeCategory = (val) => {
         if (!val) return "";
@@ -99,20 +62,10 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
       };
 
       const payload = {
-<<<<<<< HEAD
         date: isoDate,
         Date: isoDate,
         amount:
           parseFloat(currentForm.amount.toString().replace(/[^0-9.-]+/g, "")) || 0,
-=======
-        date: dateOnly,
-        Date: dateOnly,
-        transactionDate: dateOnly,
-        transaction_date: dateOnly,
-        amount:
-          parseFloat(currentForm.amount.toString().replace(/[^0-9.-]+/g, "")) ||
-          0,
->>>>>>> sahil
         category: normalizeCategory(currentForm.category),
         account: currentForm.account,
         note: currentForm.note,
@@ -182,53 +135,25 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
             <div className="p-2 bg-emerald-100 rounded-lg">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
             </div>
-<<<<<<< HEAD
             <h2 className="text-lg font-bold text-emerald-900">Record Income</h2>
-=======
-            <h2 className="text-lg font-bold text-emerald-900">
-              Record Income
-            </h2>
->>>>>>> sahil
           </div>
           <VoiceRecorder
             onCommandParsed={(data) => {
               // Auto-fill the form with parsed data
               const parsed = data.voiceCommand?.parsedData || data.parsedData;
               if (parsed) {
-<<<<<<< HEAD
                 const updatedForm = {
                   ...form,
                   amount: parsed.amount?.toString() || form.amount,
                   category: parsed.category || form.category,
                   note: parsed.description || form.note,
                   account: parsed.account || form.account
-=======
-                const parsedDate =
-                  parsed.date ||
-                  parsed.Date ||
-                  parsed.transactionDate ||
-                  parsed.when ||
-                  null;
-                const updatedForm = {
-                  ...form,
-                  date: parsedDate ? String(parsedDate) : form.date,
-                  amount: parsed.amount?.toString() || form.amount,
-                  category: parsed.category || form.category,
-                  note: parsed.description || form.note,
-                  account: parsed.account || form.account,
->>>>>>> sahil
                 };
 
                 setForm(updatedForm);
                 // Auto-submit immediately with the parsed data
                 handleSave({ preventDefault: () => {} }, updatedForm);
-<<<<<<< HEAD
                 toast.success('Form auto-filled from voice command! Submitting...');
-=======
-                toast.success(
-                  "Form auto-filled from voice command! Submitting...",
-                );
->>>>>>> sahil
               }
             }}
             disabled={loading}
@@ -239,13 +164,7 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
-<<<<<<< HEAD
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Date
-                </label>
->>>>>>> sahil
                 <input
                   type="date"
                   name="date"
@@ -255,13 +174,7 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                 />
               </div>
               <div>
-<<<<<<< HEAD
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Amount</label>
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Amount
-                </label>
->>>>>>> sahil
                 <input
                   type="text"
                   name="amount"
@@ -275,13 +188,7 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-<<<<<<< HEAD
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Category
-                </label>
->>>>>>> sahil
                 <input
                   type="text"
                   name="category"
@@ -292,21 +199,11 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                 />
               </div>
               <div>
-<<<<<<< HEAD
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Account</label>
                 <select 
                   name="account" 
                   value={form.account} 
                   onChange={handleChange} 
-=======
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Account
-                </label>
-                <select
-                  name="account"
-                  value={form.account}
-                  onChange={handleChange}
->>>>>>> sahil
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition appearance-none cursor-pointer bg-white"
                 >
                   <option value="Cash">Cash</option>
@@ -316,13 +213,7 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
             </div>
 
             <div>
-<<<<<<< HEAD
               <label className="block text-sm font-semibold text-gray-700 mb-2">Note</label>
-=======
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Note
-              </label>
->>>>>>> sahil
               <input
                 type="text"
                 name="note"
