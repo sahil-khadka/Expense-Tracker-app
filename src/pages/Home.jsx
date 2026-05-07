@@ -35,7 +35,7 @@ export default function Home() {
         <div className="mt-12 flex justify-center w-full">
           <div className="bg-[#82a56c] p-5 rounded-2xl shadow-lg flex flex-col gap-1.5 w-[240px] transition-all duration-300 hover:scale-105 hover:bg-[#8eb477] hover:shadow-2xl cursor-pointer group relative">
             {/* Tooltip on Hover - Cloud Shape at Top Left */}
-            <div className="absolute bottom-[90%] right-[30%] w-[400px] h-[300px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 transform group-hover:-translate-x-2 group-hover:-translate-y-2 z-30 pointer-events-none drop-shadow-2xl">
+            <div className="absolute bottom-[90%] right-[150%] w-[400px] h-[300px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 transform group-hover:-translate-x-2 group-hover:-translate-y-2 z-30 pointer-events-none drop-shadow-2xl">
               {/* Cloud SVG Background */}
               <svg
                 className="absolute inset-0 w-full h-full"
@@ -46,7 +46,7 @@ export default function Home() {
               >
                 {/* Wider and rounder cloud path with a tail */}
                 <path
-                  d="M 40 85 Q 15 85 15 60 Q 10 40 30 35 Q 35 10 65 15 Q 95 10 100 35 Q 120 35 120 55 Q 120 80 95 85 L 125 110 L 80 85 Q 60 90 40 85 Z"
+                  d="M 40 85 Q 15 85 15 60 Q 10 40 30 35 Q 35 10 65 15 Q 95 10 100 35 Q 120 35 120 55 Q 120 80 95 89 L 121  110 L 80 85 Q 60 90 40 85 Z"
                   fill="#a09b9b86"
                 />
               </svg>
