@@ -24,7 +24,7 @@ export default function EwalletCard({ name = "User", balance = "0.00" }) {
                 <Eye className="w-5 h-5 text-[#083b22] opacity-85" />
               ) : (
                 <EyeOff className="w-5 h-5 text-[#083b22] opacity-85" />
-              )}np
+              )}
             </button>
           </div>
         </div>
