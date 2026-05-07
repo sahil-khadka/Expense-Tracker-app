@@ -39,7 +39,9 @@ export default function Ewallet() {
       confirmButtonText: "Yes, log out",
       cancelButtonText: "Cancel",
     });
+
     if (!result.isConfirmed) return;
+
     try {
       await axios.post("/logout", {}, { withCredentials: true });
       toast("You have logged out successfully", {
@@ -52,7 +54,6 @@ export default function Ewallet() {
     }
   };
 
-  // state for user and balance
   const [userName, setUserName] = useState("User");
   const [balance, setBalance] = useState("0.00");
 
@@ -63,9 +64,8 @@ export default function Ewallet() {
       const parts = token.split(".");
       if (parts.length < 2) return null;
       const payload = JSON.parse(atob(parts[1]));
-      // Use only name fields; avoid fallback to email in greeting.
       return payload.userName || payload.name || null;
-    } catch (e) {
+    } catch {
       return null;
     }
   };
@@ -74,15 +74,18 @@ export default function Ewallet() {
     try {
       const token = getToken();
       const config = { withCredentials: true, headers: {} };
+
       if (token) config.headers.Authorization = `Bearer ${token}`;
+
       let hasWalletBalance = false;
 
-      // Prefer server-sourced wallet document which stores the balance
       try {
         const walletRes = await axios.post("/viewOwnwallet", {}, config);
         const wallet = walletRes?.data?.data || walletRes?.data;
         const walletUserName = wallet?.userID?.userName;
+
         if (walletUserName) setUserName(walletUserName);
+
         if (wallet && typeof wallet.balance !== "undefined") {
           setBalance(
             Number(wallet.balance).toLocaleString(undefined, {
@@ -92,14 +95,12 @@ export default function Ewallet() {
           );
           hasWalletBalance = true;
         }
-      } catch (e) {
-        // fall back to computing from transactions below
-      }
+      } catch {}
 
-      // Also read transactions to show page insights and fallback wallet balance.
       const res = await axios.post(API_URL, {}, config);
 
       let data = [];
+
       if (Array.isArray(res?.data)) {
         data = res.data;
       } else if (Array.isArray(res?.data?.data)) {
@@ -126,6 +127,7 @@ export default function Ewallet() {
           .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
         let bal = 0;
+
         norm.forEach((it) => {
           const amt = Number(it.amount) || 0;
           const t = String(it.type || "").toLowerCase();
@@ -150,10 +152,10 @@ export default function Ewallet() {
 
   const handleOptimisticUpdate = (type, amount) => {
     setBalance((prev) => {
-      // remove commas before parsing
       const numericPrev = parseFloat(prev.replace(/,/g, "")) || 0;
       const updated =
         type === "Income" ? numericPrev + amount : numericPrev - amount;
+
       return updated.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -162,41 +164,42 @@ export default function Ewallet() {
   };
 
   useEffect(() => {
-    // Require authentication for ewallet data
     const token = getToken();
+
     if (!token) {
-      try {
-        const current = window.location.pathname;
-        if (current !== "/") navigate("/", { replace: true });
-      } catch (e) {
-        navigate("/", { replace: true });
-      }
+      navigate("/", { replace: true });
       return;
     }
 
-    // set user name from token if available and fetch initial balance
     const storedName = getUserName();
+
     if (storedName) setUserName(storedName);
     else {
       const name = decodeTokenName(token);
       if (name) setUserName(name);
     }
+
     fetchBalance();
   }, []);
 
   const displayUserName = String(userName || "User").includes("@")
     ? String(userName).split("@")[0]
     : userName;
+
   const numericBalance = Number(String(balance).replace(/,/g, "")) || 0;
   const reserveAmount = Math.max(0, numericBalance * 0.2);
   const spendableAmount = Math.max(0, numericBalance - reserveAmount);
+
   const today = new Date();
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
   const remainingDays = Math.max(
     1,
     lastDayOfMonth.getDate() - today.getDate() + 1,
   );
+
   const suggestedDailyBudget = spendableAmount / remainingDays;
+
   const suggestionItems = [
     numericBalance <= 0
       ? "Your wallet is empty. Add an income entry before making any expense."
@@ -210,14 +213,12 @@ export default function Ewallet() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#] text-gray-900 font-sans flex flex-col overflow-hidden">
+    <div className="min-h-screen text-gray-900 font-sans flex flex-col overflow-hidden">
       <UserNavbar />
 
-      {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        {/* Content Area */}
         <main
           className="flex-1 relative overflow-y-auto pb-20 pt-16"
           style={{
@@ -231,11 +232,11 @@ export default function Ewallet() {
             <div className="w-full">
               <EwalletCard name={displayUserName} balance={balance} />
 
-              {/* Action buttons */}
+              {/* Action Buttons */}
               <div className="mt-6 w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <button
-                    className="text-left rounded-2xl p-5 shadow-md border border-emerald-100 bg-gradient-to-r from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 transition"
+                    className="text-left rounded-2xl p-5 shadow-md border border-emerald-100 bg-gradient-to-r from-emerald-100 to-emerald-200 hover:from-emerald-200 hover:to-emerald-300 transition"
                     onClick={() => openModal(false)}
                   >
                     <div className="flex items-center justify-between">
@@ -253,6 +254,7 @@ export default function Ewallet() {
                       <ArrowUpRight className="w-8 h-8 text-emerald-700" />
                     </div>
                   </button>
+
                   <button
                     className="text-left rounded-2xl p-5 shadow-md border border-rose-100 bg-gradient-to-r from-rose-50 to-rose-100 hover:from-rose-100 hover:to-rose-200 transition"
                     onClick={() => openModal(true)}
@@ -275,19 +277,22 @@ export default function Ewallet() {
                 </div>
               </div>
 
+              {/* Bottom cards */}
               <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white/90 rounded-2xl shadow-md p-5 border border-white/60">
+                {/* Smart Budget Planner */}
+                <div className="bg-emerald-50 rounded-2xl shadow-md p-5 border border-transparent">
                   <h3 className="text-lg font-semibold text-[#0b3c24] mb-4 flex items-center gap-2">
                     <Calculator className="w-5 h-5 text-blue-700" />
                     Smart Budget Planner
                   </h3>
+
                   <p className="text-sm text-gray-700 mb-4">
                     Suggested plan from your current wallet balance to avoid
                     overspending before month-end.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-4">
+                    <div className="rounded-xl border border-transparent bg-emerald-100 p-4">
                       <p className="text-[11px] text-blue-700 font-semibold uppercase tracking-wide">
                         Spendable Now
                       </p>
@@ -299,7 +304,8 @@ export default function Ewallet() {
                         })}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-4">
+
+                    <div className="rounded-xl border border-transparent bg-emerald-100 p-4">
                       <p className="text-[11px] text-emerald-700 font-semibold uppercase tracking-wide flex items-center gap-1">
                         <PiggyBank className="w-3 h-3" />
                         Keep as Reserve
@@ -312,7 +318,8 @@ export default function Ewallet() {
                         })}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-amber-100 bg-amber-50/70 p-4">
+
+                    <div className="rounded-xl border border-transparent bg-emerald-100 p-4">
                       <p className="text-[11px] text-amber-700 font-semibold uppercase tracking-wide">
                         Daily Limit
                       </p>
@@ -329,21 +336,23 @@ export default function Ewallet() {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  <div className="mt-4 rounded-lg bg-emerald-100 border border-transparent px-4 py-3 text-sm text-gray-700">
                     Tip: Keep at least 20% as reserve for unexpected expenses.
                   </div>
                 </div>
 
-                <div className="bg-white/90 rounded-2xl shadow-md p-5 border border-white/60">
+                {/* Suggestions */}
+                <div className="bg-emerald-50 rounded-2xl shadow-md p-5 border border-transparent">
                   <h3 className="text-lg font-semibold text-[#0b3c24] mb-4 flex items-center gap-2">
                     <Lightbulb className="w-5 h-5 text-amber-600" />
                     Suggestions For You
                   </h3>
+
                   <ul className="space-y-3 text-sm text-gray-700">
                     {suggestionItems.map((item, idx) => (
                       <li
                         key={idx}
-                        className="rounded-lg border border-amber-100 bg-amber-50/70 px-3 py-2"
+                        className="rounded-lg border border-transparent bg-emerald-100 px-3 py-2"
                       >
                         {item}
                       </li>
@@ -354,7 +363,7 @@ export default function Ewallet() {
             </div>
           </div>
 
-          {/* Modal components */}
+          {/* Modals */}
           <Income
             show={showModal && !isExpense}
             onClose={closeModal}
@@ -363,6 +372,7 @@ export default function Ewallet() {
               handleOptimisticUpdate("Income", amount)
             }
           />
+
           <Expense
             show={showModal && isExpense}
             onClose={closeModal}
@@ -376,3 +386,4 @@ export default function Ewallet() {
     </div>
   );
 }
+  

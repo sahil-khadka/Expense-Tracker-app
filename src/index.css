@@ -142,7 +142,7 @@
   box-shadow: 0 12px 30px rgba(20, 60, 30, 0.15);
 }
 
-.rounded-[20px] {
+.rounded-20 {
   border-radius: 20px;
 }
 
@@ -193,32 +193,79 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.18);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   z-index: 60;
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
-  width: 520px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.95),
-    rgba(240, 240, 240, 0.95)
-  );
-  border-radius: 8px;
-  padding: 20px 22px;
+  width: 90%;
+  max-width: 540px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
   position: relative;
-  box-shadow: 0 20px 40px rgba(10, 40, 20, 0.45);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .modal-close {
   position: absolute;
-  right: 12px;
-  top: 10px;
+  right: 16px;
+  top: 16px;
   background: transparent;
   border: none;
   cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+  padding: 4px;
+}
+
+.modal-close:hover {
+  color: #1f2937;
 }
 
 .tab {
@@ -246,38 +293,61 @@
 
 .form-grid {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 12px 18px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 16px;
   background: transparent;
-  padding: 8px 6px;
 }
 
 .form-grid label {
-  color: #33433a;
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
 }
 
 .form-grid input[type="text"],
-.form-grid input[type="date"] {
+.form-grid input[type="date"],
+.form-grid textarea {
   width: 100%;
-  padding: 8px 10px;
-  border: none;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.12);
-  background: transparent;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
   outline: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.form-grid input[type="text"]:focus,
+.form-grid input[type="date"]:focus,
+.form-grid textarea:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .form-grid select {
   width: 100%;
-  padding: 8px 10px;
-  border: none;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.12);
-  background: transparent;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
   outline: none;
+  font-size: 14px;
+  transition: all 0.2s;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  color: inherit;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 20px;
+  padding-right: 32px;
+}
+
+.form-grid select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .form-grid select::-ms-expand {
@@ -285,7 +355,12 @@
 }
 
 .save-btn {
-  min-width: 160px;
-  background: linear-gradient(90deg, #3f7e4e 0%, #9cd089 60%);
-  color: #052b14;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
 }

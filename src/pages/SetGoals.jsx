@@ -20,7 +20,9 @@ import {
   ChevronRight,
   Search,
   ArrowUpDown,
+  Eye,
 } from "lucide-react";
+import confetti from "canvas-confetti";
 
 // ── Constants ──────────────────────────────────────────────
 const GOALS_PER_PAGE = 6;
@@ -31,22 +33,90 @@ const PRIORITY_STYLES = {
   low: "bg-emerald-100 text-emerald-700 border border-emerald-200",
 };
 const inputCls =
-  "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d6a3f]/30 focus:border-[#2d6a3f] transition-all";
+  "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#3d8753]/30 focus:border-[#3d8753] transition-all";
 const btnPrimary =
-  "flex-1 py-2.5 rounded-xl bg-[#2d6a3f] text-white text-sm font-semibold hover:bg-[#245534] transition-colors disabled:opacity-60";
+  "flex-1 py-2.5 rounded-xl bg-[#3d8753] text-white text-sm font-semibold hover:bg-[#245534] transition-colors disabled:opacity-60";
 const btnSecondary =
   "flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors";
 
-// ✅ Replace with this
-import confetti from "canvas-confetti";
-
+// ── Confetti — drops from the very top of the screen ──────
 const launchConfetti = () => {
+  const colors = ["#2d6a3f", "#52a067", "#f59e0b", "#3b82f6", "#ec4899"];
+
+  // first wave - all 3 positions at once
   confetti({
-    particleCount: 180,
-    spread: 90,
-    origin: { y: 0.5 },
-    colors: ["#2d6a3f", "#52a067", "#f59e0b", "#3b82f6", "#ec4899"],
+    particleCount: 50,
+    angle: 60,
+    spread: 70,
+    origin: { x: 0, y: 0 },
+    colors,
+    gravity: 0.5,
+    scalar: 1.8,
+    drift: 0.5,
+    ticks: 300,
   });
+
+  confetti({
+    particleCount: 60,
+    angle: 90,
+    spread: 100,
+    origin: { x: 0.5, y: 0 },
+    colors,
+    gravity: 0.5,
+    scalar: 1.8,
+    drift: 0,
+    ticks: 300,
+  });
+
+  confetti({
+    particleCount: 50,
+    angle: 120,
+    spread: 70,
+    origin: { x: 1, y: 0 },
+    colors,
+    gravity: 0.5,
+    scalar: 1.8,
+    drift: -0.5,
+    ticks: 300,
+  });
+
+  // second wave at 0.8s
+  setTimeout(() => {
+    confetti({
+      particleCount: 25,
+      angle: 90,
+      spread: 120,
+      origin: { x: 0.5, y: 0 },
+      colors,
+      gravity: 0.4,
+      scalar: 2,
+      ticks: 300,
+    });
+  }, 800);
+
+  // third wave at 1.6s
+  setTimeout(() => {
+    confetti({
+      particleCount: 20,
+      angle: 60,
+      spread: 80,
+      origin: { x: 0.2, y: 0 },
+      colors,
+      gravity: 0.4,
+      scalar: 1.8,
+      ticks: 100,
+    });
+    confetti({
+      particleCount: 20,
+      angle: 120,
+      spread: 80,
+      origin: { x: 0.8, y: 0 },
+      colors,
+      gravity: 0.4,
+      scalar: 1.8,
+      ticks: 100,
+    });
+  }, 0);
 };
 
 // ── Small reusable components ──────────────────────────────
@@ -140,7 +210,7 @@ const Pagination = ({ page, total, perPage, onChange }) => {
         <button
           key={p}
           onClick={() => onChange(p)}
-          className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? "bg-[#2d6a3f] text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+          className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? "bg-[#3d8753] text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50"}`}
         >
           {p}
         </button>
@@ -166,7 +236,9 @@ const GoalCard = ({ goal, onDeposit, onEdit, onDelete }) => {
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm border p-5 flex flex-col gap-4 hover:shadow-md transition-all ${isComplete ? "border-emerald-200" : "border-gray-100"}`}
+      className={`bg-white rounded-2xl shadow-sm border-2 p-5 flex flex-col gap-4 hover:shadow-md transition-all ${
+        isComplete ? "border-emerald-300" : "border-emerald-100"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -176,7 +248,7 @@ const GoalCard = ({ goal, onDeposit, onEdit, onDelete }) => {
             {isComplete ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             ) : (
-              <Target className="w-5 h-5 text-[#2d6a3f]" />
+              <Target className="w-5 h-5 text-[#3d8753]" />
             )}
           </div>
           <div className="min-w-0">
@@ -256,7 +328,7 @@ const GoalCard = ({ goal, onDeposit, onEdit, onDelete }) => {
         {!isComplete && (
           <button
             onClick={() => onDeposit(goal)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2d6a3f] text-white rounded-lg text-xs font-semibold hover:bg-[#245534] transition-colors"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#3d8753] text-white rounded-lg text-xs font-semibold hover:bg-[#245534] transition-colors"
           >
             <Wallet className="w-3.5 h-3.5" /> Add Saving
           </button>
@@ -275,10 +347,11 @@ export default function SetGoals() {
   const [selected, setSelected] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Search & Sort
+  // Search, Sort & View filter
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("priority"); // priority | name | progress | deadline
+  const [sortBy, setSortBy] = useState("priority");
   const [sortDir, setSortDir] = useState("asc");
+  const [showCompleted, setShowCompleted] = useState(false); // ← toggle completed visibility
 
   const [createForm, setCreateForm] = useState({
     goalName: "",
@@ -308,7 +381,11 @@ export default function SetGoals() {
   const fetchGoals = async () => {
     try {
       const res = await axios.get("/goals", authConfig());
-      setGoals(res?.data?.data || []);
+      // Sort newest first so the most recently created goal appears at the top
+      const data = (res?.data?.data || [])
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setGoals(data);
     } catch {
       toast.error("Failed to fetch goals");
     } finally {
@@ -322,7 +399,12 @@ export default function SetGoals() {
 
   // ── Filter + Sort ──────────────────────────────────────
   const processed = goals
-    .filter((g) => g.goalName.toLowerCase().includes(search.toLowerCase()))
+    .filter((g) => {
+      const isComplete = parseFloat(g.progressPercentage) >= 100;
+      // hide completed goals unless user chose to show them
+      if (isComplete && !showCompleted) return false;
+      return g.goalName.toLowerCase().includes(search.toLowerCase());
+    })
     .sort((a, b) => {
       let valA, valB;
       if (sortBy === "priority") {
@@ -354,11 +436,19 @@ export default function SetGoals() {
   ).length;
 
   const toggleSort = (field) => {
-    if (sortBy === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
+    if (sortBy === field) {
+      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+    } else {
       setSortBy(field);
-      setSortDir("asc");
+
+      // Progress should start from highest first
+      if (field === "progress") {
+        setSortDir("desc");
+      } else {
+        setSortDir("asc");
+      }
     }
+
     setPage(1);
   };
 
@@ -449,23 +539,38 @@ export default function SetGoals() {
     }
   };
 
-  // ── Sort button helper ─────────────────────────────────
-  const SortBtn = ({ field, label }) => (
-    <button
-      onClick={() => toggleSort(field)}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-        sortBy === field
-          ? "bg-[#2d6a3f] text-white border-[#2d6a3f]"
-          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-      }`}
-    >
-      {label}
-      <ArrowUpDown className="w-3 h-3" />
-      {sortBy === field && (
+  const SortBtn = ({ field, label }) => {
+    const getDirectionLabel = () => {
+      if (sortBy !== field) return null;
+
+      if (field === "progress") {
+        return (
+          <span className="text-[10px]">
+            {sortDir === "desc" ? "Highest" : "Lowest"}
+          </span>
+        );
+      }
+
+      return (
         <span className="text-[10px]">{sortDir === "asc" ? "A" : "D"}</span>
-      )}
-    </button>
-  );
+      );
+    };
+
+    return (
+      <button
+        onClick={() => toggleSort(field)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+          sortBy === field
+            ? "bg-[#3d8753] text-white border-[#3d8753]"
+            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+        }`}
+      >
+        {label}
+        <ArrowUpDown className="w-3 h-3" />
+        {getDirectionLabel()}
+      </button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#dce7d7] font-sans flex flex-col overflow-hidden">
@@ -487,7 +592,7 @@ export default function SetGoals() {
               </div>
               <button
                 onClick={() => openModal("create")}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#2d6a3f] text-white rounded-xl font-semibold text-sm hover:bg-[#245534] transition-colors shadow-sm"
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#3d8753] text-white rounded-xl font-semibold text-sm hover:bg-[#245534] transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" /> New Goal
               </button>
@@ -498,7 +603,7 @@ export default function SetGoals() {
               {[
                 {
                   icon: <Target className="w-5 h-5 text-white" />,
-                  bg: "bg-[#2d6a3f]",
+                  bg: "bg-[#3d8753]",
                   card: "bg-[#eaf3e8]",
                   label: "Total Goals",
                   value: goals.length,
@@ -537,14 +642,14 @@ export default function SetGoals() {
               ))}
             </div>
 
-            {/* Search & Sort bar */}
+            {/* Search, Sort & Show Completed bar */}
             {goals.length > 0 && (
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 {/* Search */}
                 <div className="relative flex-1 min-w-[200px] max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2d6a3f]/30 focus:border-[#2d6a3f] transition-all"
+                    className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#3d8753]/30 focus:border-[#3d8753] transition-all"
                     placeholder="Search goals..."
                     value={search}
                     onChange={(e) => {
@@ -557,20 +662,40 @@ export default function SetGoals() {
                 {/* Sort buttons */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-gray-400 font-medium">
-                    Sort by:
+                    Sort:
                   </span>
                   <SortBtn field="priority" label="Priority" />
                   <SortBtn field="name" label="Name" />
                   <SortBtn field="progress" label="Progress" />
                   <SortBtn field="deadline" label="Deadline" />
                 </div>
+
+                {/* Show completed toggle — only shows if there are completed goals */}
+                {completedCount > 0 && (
+                  <button
+                    onClick={() => {
+                      setShowCompleted((v) => !v);
+                      setPage(1);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ml-auto ${
+                      showCompleted
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    {showCompleted
+                      ? `Hide Completed (${completedCount})`
+                      : `Show Completed (${completedCount})`}
+                  </button>
+                )}
               </div>
             )}
 
             {/* Goals grid */}
             {loading ? (
               <div className="flex items-center justify-center py-24">
-                <div className="w-8 h-8 border-4 border-[#2d6a3f] border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-[#3d8753] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : goals.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -586,7 +711,7 @@ export default function SetGoals() {
                 </p>
                 <button
                   onClick={() => openModal("create")}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#2d6a3f] text-white rounded-xl text-sm font-semibold hover:bg-[#245534] transition-colors"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[#3d8753] text-white rounded-xl text-sm font-semibold hover:bg-[#245534] transition-colors"
                 >
                   <Plus className="w-4 h-4" /> Create your first goal
                 </button>
@@ -595,14 +720,28 @@ export default function SetGoals() {
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <Search className="w-10 h-10 text-gray-300 mb-3" />
                 <p className="text-gray-500 font-medium">
-                  No goals match "{search}"
+                  {search
+                    ? `No goals match "${search}"`
+                    : "No active goals. All goals are completed!"}
                 </p>
-                <button
-                  onClick={() => setSearch("")}
-                  className="mt-3 text-sm text-[#2d6a3f] hover:underline font-semibold"
-                >
-                  Clear search
-                </button>
+                <div className="flex gap-2 mt-3">
+                  {search && (
+                    <button
+                      onClick={() => setSearch("")}
+                      className="text-sm text-[#3d8753] hover:underline font-semibold"
+                    >
+                      Clear search
+                    </button>
+                  )}
+                  {!showCompleted && completedCount > 0 && (
+                    <button
+                      onClick={() => setShowCompleted(true)}
+                      className="text-sm text-emerald-600 hover:underline font-semibold"
+                    >
+                      Show completed goals
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <>

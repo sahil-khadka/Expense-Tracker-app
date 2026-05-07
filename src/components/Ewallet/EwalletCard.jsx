@@ -5,7 +5,8 @@ export default function EwalletCard({ name = "User", balance = "0.00" }) {
   const [visible, setVisible] = useState(false); // default hidden
 
   return (
-    <div className="p-6 mb-8 shadow-card rounded-[20px] ewallet-card bg-green-200">
+    <div className="p-6 mb-8 shadow-card rounded-[20px] border border-emerald-200 bg-emerald-100">
+      {" "}
       <div className="flex justify-between items-start">
         <div>
           <div className="text-lg text-[#234b2e] font-medium">
@@ -23,7 +24,7 @@ export default function EwalletCard({ name = "User", balance = "0.00" }) {
                 <Eye className="w-5 h-5 text-[#083b22] opacity-85" />
               ) : (
                 <EyeOff className="w-5 h-5 text-[#083b22] opacity-85" />
-              )}
+              )}np
             </button>
           </div>
         </div>
