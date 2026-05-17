@@ -11,6 +11,7 @@ import WeeklySummaryCard from "../components/Report/WeeklySummaryCard.jsx";
 import WeeklyInsightsCard from "../components/Report/WeeklyInsightsCard.jsx";
 import { useWeeklyReportData } from "../components/Report/useWeeklyReportData.js";
 
+
 export default function Report() {
   const [range, setRange] = useState("weekly");
   const [monthKey, setMonthKey] = useState(() => {
@@ -25,6 +26,8 @@ export default function Report() {
       enabled: range === "monthly",
     },
   );
+  
+
 
   const weekly = useWeeklyReportData({ enabled: range === "weekly" });
 
@@ -32,7 +35,7 @@ export default function Report() {
     <div className="min-h-screen bg-[#f4f7f4] font-sans flex flex-col overflow-hidden">
       <UserNavbar />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden ">
         <Sidebar />
 
         <main
@@ -53,6 +56,7 @@ export default function Report() {
               <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-gray-100">
                 {["weekly", "monthly"].map((r) => (
                   <button
+
                     key={r}
                     onClick={() => setRange(r)}
                     className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize ${
@@ -65,6 +69,7 @@ export default function Report() {
                   </button>
                 ))}
               </div>
+
 
               {range === "monthly" && (
                 <input
@@ -90,6 +95,7 @@ export default function Report() {
                     totalExpense={weekly.totalExpense}
                     netBalance={weekly.netBalance}
                   />
+
                   <WeeklySummaryCard
                     loading={weekly.loading}
                     hasData={weekly.hasData}
@@ -102,6 +108,7 @@ export default function Report() {
                     highestAmount={weekly.highestExpenseCategoryAmount}
                     lowestCategory={weekly.lowestExpenseCategory}
                     lowestAmount={weekly.lowestExpenseCategoryAmount}
+
                     suggestion={weekly.suggestion}
                   />
                 </div>
@@ -131,9 +138,12 @@ export default function Report() {
                     opportunity={computed.opportunity}
                   />
                 </div>
+
               </div>
             )}
+
           </div>
+
         </main>
       </div>
     </div>
