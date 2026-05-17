@@ -7,6 +7,8 @@ import sideImage from "../assets/log&sign.png";
 export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState(location.state?.email || localStorage.getItem("otpEmail") || "");
@@ -20,6 +22,7 @@ export default function ResetPassword() {
     }
   }, [email]);
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
@@ -30,6 +33,7 @@ export default function ResetPassword() {
       toast("Passwords must match.", { type: "error", autoClose: 1500 });
       return;
     }
+
 
     setLoading(true);
     try {
@@ -51,6 +55,7 @@ export default function ResetPassword() {
     }
   };
 
+
   return (
     <div className="flex min-h-screen w-full bg-white font-sans">
       <div className="hidden md:block md:w-1/2 relative bg-[#f4f4f4]">
@@ -66,8 +71,10 @@ export default function ResetPassword() {
             <h1 className="text-4xl italic font-serif text-[#2f5c2b] mb-2">Reset Password</h1>
             <p className="text-gray-500 text-[15px]">
               Create a new password to complete your reset.
+
             </p>
           </div>
+
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
@@ -93,6 +100,8 @@ export default function ResetPassword() {
               />
             </div>
 
+
+
             {success && <p className="text-sm text-green-600">Password reset successfully. Redirecting to login...</p>}
 
             <button
@@ -114,6 +123,7 @@ export default function ResetPassword() {
               </Link>
             </p>
           </div>
+
         </div>
       </div>
     </div>
