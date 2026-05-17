@@ -1,12 +1,41 @@
 import React, { useMemo } from "react";
 
-export default function WeeklyActivity({ transactions = [], barData = null }) {
-  const labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MIN_VISIBLE_BAR_PERCENT = 3;
+const SKEW_RATIO_THRESHOLD = 10;
 
-  const { data, maxValue, ySteps } = useMemo(() => {
+function formatMoney(value) {
+  const amount = Number(value) || 0;
+
+  if (amount >= 100000) {
+    return amount.toLocaleString("en-IN", {
+      maximumFractionDigits: 0,
+    });
+  }
+
+  return amount.toLocaleString("en-IN", {
+    maximumFractionDigits: 0,
+  });
+}
+
+function roundChartTop(value) {
+  if (value <= 100) return 100;
+
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  return Math.ceil(value / magnitude) * magnitude;
+}
+
+function getPositiveValues(data) {
+  return data
+    .flatMap((item) => [item.income, item.expense])
+    .filter((value) => value > 0);
+}
+
+export default function WeeklyActivity({ transactions = [], barData = null }) {
+  const { data, maxValue, ySteps, scaleMode } = useMemo(() => {
     // If backend provided weekly barchart data, use it directly.
     if (barData && Array.isArray(barData) && barData.length > 0) {
-      const arr = labels.map((label) => {
+      const arr = LABELS.map((label) => {
         const row = barData.find((d) => d.day === label) || {};
         return {
           label,
@@ -14,16 +43,28 @@ export default function WeeklyActivity({ transactions = [], barData = null }) {
           expense: Number(row.Withdraw) || 0,
         };
       });
-      const max = Math.max(...arr.flatMap((d) => [d.income, d.expense]), 100);
-      const top = Math.ceil(max / 100) * 100;
+      const values = getPositiveValues(arr);
+      const max = Math.max(...values, 100);
+      const min = Math.min(...values, max);
+      const top = roundChartTop(max);
+      const compressed = values.length > 1 && max / min >= SKEW_RATIO_THRESHOLD;
       const steps = 5;
-      const yLabels = Array.from({ length: steps + 1 }, (_, i) =>
-        Math.round((top * (steps - i)) / steps),
-      );
-      return { data: arr, maxValue: top, ySteps: yLabels };
+      const yLabels = Array.from({ length: steps + 1 }, (_, i) => {
+        const ratio = (steps - i) / steps;
+        if (compressed) {
+          return Math.round(Math.expm1(Math.log1p(top) * ratio));
+        }
+        return Math.round(top * ratio);
+      });
+      return {
+        data: arr,
+        maxValue: top,
+        ySteps: yLabels,
+        scaleMode: compressed ? "compressed" : "linear",
+      };
     }
 
-    const map = labels.reduce((acc, l) => {
+    const map = LABELS.reduce((acc, l) => {
       acc[l] = { income: 0, expense: 0 };
       return acc;
     }, {});
@@ -42,21 +83,45 @@ export default function WeeklyActivity({ transactions = [], barData = null }) {
       else map[day].income += amt;
     });
 
-    const arr = labels.map((label) => ({
+    const arr = LABELS.map((label) => ({
       label,
       income: map[label].income,
       expense: map[label].expense,
     }));
 
-    const max = Math.max(...arr.flatMap((d) => [d.income, d.expense]), 100);
-    const top = Math.ceil(max / 100) * 100;
+    const values = getPositiveValues(arr);
+    const max = Math.max(...values, 100);
+    const min = Math.min(...values, max);
+    const top = roundChartTop(max);
+    const compressed = values.length > 1 && max / min >= SKEW_RATIO_THRESHOLD;
     const steps = 5;
-    const yLabels = Array.from({ length: steps + 1 }, (_, i) =>
-      Math.round((top * (steps - i)) / steps),
-    );
+    const yLabels = Array.from({ length: steps + 1 }, (_, i) => {
+      const ratio = (steps - i) / steps;
+      if (compressed) {
+        return Math.round(Math.expm1(Math.log1p(top) * ratio));
+      }
+      return Math.round(top * ratio);
+    });
 
-    return { data: arr, maxValue: top, ySteps: yLabels };
+    return {
+      data: arr,
+      maxValue: top,
+      ySteps: yLabels,
+      scaleMode: compressed ? "compressed" : "linear",
+    };
   }, [transactions, barData]);
+
+  const getBarHeight = (value) => {
+    const amount = Number(value) || 0;
+    if (amount <= 0) return "0%";
+
+    const ratio =
+      scaleMode === "compressed"
+        ? Math.log1p(amount) / Math.log1p(maxValue || 1)
+        : amount / (maxValue || 1);
+
+    return `${Math.max(MIN_VISIBLE_BAR_PERCENT, Math.min(100, ratio * 100))}%`;
+  };
 
   return (
     <div className="p-1 h-[380px] flex flex-col relative">
@@ -75,9 +140,9 @@ export default function WeeklyActivity({ transactions = [], barData = null }) {
         {/* Bar Chart Area */}
         <div className="flex-1 flex mt-2 relative">
           {/* Y-axis Labels & Grid */}
-          <div className="flex flex-col justify-between text-xs text-gray-500 pr-4 pb-6 w-12 z-10 bg-[#e4e4e4]">
+          <div className="flex flex-col justify-between text-[10px] text-gray-500 pr-2 pb-6 w-16 z-10 bg-[#e4e4e4]">
             {ySteps.map((y, i) => (
-              <span key={i}>{y}</span>
+              <span key={i}>Rs. {formatMoney(y)}</span>
             ))}
           </div>
 
@@ -100,15 +165,13 @@ export default function WeeklyActivity({ transactions = [], barData = null }) {
               >
                 <div
                   className="w-3 bg-[#0ce704] rounded-t-sm"
-                  style={{ height: `${(day.income / (maxValue || 1)) * 100}%` }}
-                  title={`Income: ${day.income}`}
+                  style={{ height: getBarHeight(day.income) }}
+                  title={`Income: Rs. ${formatMoney(day.income)}`}
                 ></div>
                 <div
                   className="w-3 bg-[#c24b2f] rounded-t-sm"
-                  style={{
-                    height: `${(day.expense / (maxValue || 1)) * 100}%`,
-                  }}
-                  title={`Expense: ${day.expense}`}
+                  style={{ height: getBarHeight(day.expense) }}
+                  title={`Expense: Rs. ${formatMoney(day.expense)}`}
                 ></div>
                 <span className="absolute -bottom-6 text-xs text-gray-600">
                   {day.label}

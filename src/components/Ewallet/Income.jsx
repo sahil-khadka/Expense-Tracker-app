@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import axios from "../../constants/api.js";
 import { getToken } from "../../constants/auth.js";
 import VoiceRecorder from "../VoiceInput/VoiceRecorder";
+import { validateTransactionForm } from "./transactionValidation.js";
 
 const API_URL = "/ExpenseMoney";
 
@@ -15,16 +16,19 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
     account: "Cash",
     note: "",
   });
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (show) {
       setForm((s) => ({ ...s, date: new Date().toISOString().slice(0, 10) }));
+      setErrors({});
     }
   }, [show]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: "" }));
   };
 
   const [loading, setLoading] = useState(false);
@@ -32,45 +36,28 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
   const handleSave = async (e, voiceFormData = null) => {
     e.preventDefault();
     const currentForm = voiceFormData || form;
+    const validation = validateTransactionForm(currentForm, "Income");
 
-    if (!currentForm.amount) {
-      toast("Please enter an amount", { type: "error" });
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      toast.warning(Object.values(validation.errors)[0]);
       return;
     }
+
+    setErrors({});
     setLoading(true);
     try {
-      function toApiIso(dateStr) {
-        const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/;
-        if (typeof dateStr === "string" && isoDateOnly.test(dateStr)) {
-          const [y, m, d] = dateStr.split("-").map((n) => parseInt(n, 10));
-          // use midday local time to avoid timezone date shifts
-          return new Date(y, m - 1, d, 12, 0, 0).toISOString();
-        }
-        try {
-          return new Date(dateStr).toISOString();
-        } catch (e) {
-          return dateStr;
-        }
-      }
-
-      const isoDate = toApiIso(currentForm.date);
-
-      const normalizeCategory = (val) => {
-        if (!val) return "";
-        const t = String(val).trim().toLowerCase();
-        return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
-      };
+      const { values } = validation;
 
       const payload = {
-        date: isoDate,
-        Date: isoDate,
-        amount:
-          parseFloat(currentForm.amount.toString().replace(/[^0-9.-]+/g, "")) || 0,
-        category: normalizeCategory(currentForm.category),
-        account: currentForm.account,
-        note: currentForm.note,
+        date: values.isoDate,
+        Date: values.isoDate,
+        amount: values.amount,
+        category: values.category,
+        account: values.account,
+        note: values.note,
         // backend expects 'description' (zod validation). mirror note into description
-        description: currentForm.note ?? "",
+        description: values.note,
         // API expects capitalized type values per docs
         type: "Income",
       };
@@ -106,7 +93,9 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
         let detail = err.response.data;
         try {
           if (typeof detail === "object") detail = JSON.stringify(detail);
-        } catch (e) {}
+        } catch {
+          detail = "Unable to read error details";
+        }
         msg = `Request failed with status ${status}${detail ? ": " + detail : ""}`;
       } else if (err.message) {
         msg = err.message;
@@ -122,6 +111,13 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
   };
 
   if (!show) return null;
+
+  const fieldClass = (field) =>
+    `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+      errors[field]
+        ? "border-red-400 bg-red-50 focus:ring-red-200"
+        : "border-gray-300 focus:ring-emerald-500"
+    }`;
 
   return (
     <div className="modal-overlay">
@@ -142,18 +138,25 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
               // Auto-fill the form with parsed data
               const parsed = data.voiceCommand?.parsedData || data.parsedData;
               if (parsed) {
+                if (parsed.action && parsed.action !== "add_income") {
+                  toast.warning("This voice command is for expense. Open Expense to record it.");
+                  return;
+                }
+
                 const updatedForm = {
                   ...form,
                   amount: parsed.amount?.toString() || form.amount,
-                  category: parsed.category || form.category,
+                  category: parsed.category?.trim() || form.category || "Income",
                   note: parsed.description || form.note,
-                  account: parsed.account || form.account
+                  account:
+                    parsed.account === "Bank" || parsed.account === "Cash"
+                      ? parsed.account
+                      : form.account,
                 };
 
                 setForm(updatedForm);
                 // Auto-submit immediately with the parsed data
                 handleSave({ preventDefault: () => {} }, updatedForm);
-                toast.success('Form auto-filled from voice command! Submitting...');
               }
             }}
             disabled={loading}
@@ -170,7 +173,9 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                   name="date"
                   value={form.date}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  max={new Date().toISOString().slice(0, 10)}
+                  aria-invalid={Boolean(errors.date)}
+                  className={fieldClass("date")}
                 />
               </div>
               <div>
@@ -181,7 +186,9 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                   value={form.amount}
                   onChange={handleChange}
                   placeholder="Rs. 0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  inputMode="decimal"
+                  aria-invalid={Boolean(errors.amount)}
+                  className={fieldClass("amount")}
                 />
               </div>
             </div>
@@ -195,7 +202,9 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                   value={form.category}
                   onChange={handleChange}
                   placeholder="e.g., Salary, Bonus"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                  maxLength={40}
+                  aria-invalid={Boolean(errors.category)}
+                  className={fieldClass("category")}
                 />
               </div>
               <div>
@@ -204,7 +213,8 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                   name="account" 
                   value={form.account} 
                   onChange={handleChange} 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition appearance-none cursor-pointer bg-white"
+                  aria-invalid={Boolean(errors.account)}
+                  className={`${fieldClass("account")} appearance-none cursor-pointer bg-white`}
                 >
                   <option value="Cash">Cash</option>
                   <option value="Bank">Bank</option>
@@ -220,8 +230,15 @@ export default function Income({ show, onClose, onSaved, onOptimisticSave }) {
                 value={form.note}
                 onChange={handleChange}
                 placeholder="Add a note (optional)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                maxLength={160}
+                aria-invalid={Boolean(errors.note)}
+                className={fieldClass("note")}
               />
+              <div className="mt-1 flex justify-between gap-3 text-xs">
+                <span className="ml-auto text-gray-400">
+                  {form.note.length}/160
+                </span>
+              </div>
             </div>
           </div>
 
