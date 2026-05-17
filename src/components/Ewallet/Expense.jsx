@@ -86,10 +86,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       };
 
-      if (typeof onOptimisticSave === "function") {
-        onOptimisticSave(payload.amount);
-      }
-
+      // Do not apply optimistic balance updates for expenses (avoid negative UI state)
       await axios.post(API_URL, payload, config);
 
       if (typeof onSaved === "function") onSaved();
