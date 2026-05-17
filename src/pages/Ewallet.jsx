@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../constants/api.js";
-import { toast } from "react-toastify";
-import Swal from "sweetalert2";
-import { getToken, getUserName, clearAuth } from "../constants/auth.js";
+import { getToken, getUserName } from "../constants/auth.js";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -16,6 +14,27 @@ import UserNavbar from "../components/Dashboard/UserNavbar";
 import Income from "../components/Ewallet/Income";
 import Expense from "../components/Ewallet/Expense";
 import EwalletCard from "../components/Ewallet/EwalletCard";
+
+const decodeTokenName = (token) => {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.userName || payload.username || payload.name || null;
+  } catch {
+    return null;
+  }
+};
+
+const getInitialUserName = () => {
+  const storedName = getUserName();
+  if (storedName) return storedName;
+
+  const token = getToken();
+  if (!token) return "User";
+
+  return decodeTokenName(token) || "User";
+};
 
 export default function Ewallet() {
   const [showModal, setShowModal] = useState(false);
@@ -30,45 +49,10 @@ export default function Ewallet() {
 
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: "Sign out",
-      text: "Are you sure you want to log out?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes, log out",
-      cancelButtonText: "Cancel",
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await axios.post("/logout", {}, { withCredentials: true });
-      toast("You have logged out successfully", {
-        type: "success",
-        autoClose: 1500,
-      });
-    } finally {
-      clearAuth();
-      navigate("/");
-    }
-  };
-
-  const [userName, setUserName] = useState("User");
+  const [userName, setUserName] = useState(() => getInitialUserName());
   const [balance, setBalance] = useState("0.00");
 
   const API_URL = "/viewExpenses";
-
-  const decodeTokenName = (token) => {
-    try {
-      const parts = token.split(".");
-      if (parts.length < 2) return null;
-      const payload = JSON.parse(atob(parts[1]));
-      return payload.userName || payload.name || null;
-    } catch {
-      return null;
-    }
-  };
 
   const fetchBalance = async () => {
     try {
@@ -95,7 +79,9 @@ export default function Ewallet() {
           );
           hasWalletBalance = true;
         }
-      } catch {}
+      } catch {
+        hasWalletBalance = false;
+      }
 
       const res = await axios.post(API_URL, {}, config);
 
@@ -171,16 +157,12 @@ export default function Ewallet() {
       return;
     }
 
-    const storedName = getUserName();
+    const timer = window.setTimeout(() => {
+      fetchBalance();
+    }, 0);
 
-    if (storedName) setUserName(storedName);
-    else {
-      const name = decodeTokenName(token);
-      if (name) setUserName(name);
-    }
-
-    fetchBalance();
-  }, []);
+    return () => window.clearTimeout(timer);
+  }, [navigate]);
 
   const displayUserName = String(userName || "User").includes("@")
     ? String(userName).split("@")[0]
@@ -377,9 +359,7 @@ export default function Ewallet() {
             show={showModal && isExpense}
             onClose={closeModal}
             onSaved={fetchBalance}
-            onOptimisticSave={(amount) =>
-              handleOptimisticUpdate("Expense", amount)
-            }
+            availableBalance={numericBalance}
           />
         </main>
       </div>

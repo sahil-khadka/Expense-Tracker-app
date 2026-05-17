@@ -1,57 +1,106 @@
-import React, { useState, useRef } from 'react';
-import { Mic, MicOff, Loader } from 'lucide-react';
-import { toast } from 'react-toastify';
-import axios from '../../constants/api.js';
+import React, { useEffect, useRef, useState } from "react";
+import { Loader, Mic } from "lucide-react";
+import { toast } from "react-toastify";
+import axios from "../../constants/api.js";
 
 const VoiceRecorder = ({ onTranscript, onCommandParsed, disabled }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const recognitionRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const manuallyStoppedRef = useRef(false);
 
-  const startRecording = () => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast.error('Speech recognition not supported in this browser. Try using Chrome or Edge.');
-      return;
-    }
-
-    // Check for microphone permission
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(() => {
-          initializeSpeechRecognition();
-        })
-        .catch(() => {
-          toast.error('Microphone access denied. Please allow microphone access in your browser settings.');
-        });
-    } else {
-      // Fallback for older browsers
-      initializeSpeechRecognition();
+  const clearRecordingTimeout = () => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
   };
 
-  const initializeSpeechRecognition = () => {
-    recognitionRef.current = new SpeechRecognition();
+  const cleanupRecognition = () => {
+    clearRecordingTimeout();
+    recognitionRef.current = null;
+    manuallyStoppedRef.current = false;
+  };
 
-    recognitionRef.current.continuous = false;
-    recognitionRef.current.interimResults = false;
-    recognitionRef.current.lang = 'en-US'; // Set to English for better compatibility
-
-    // Add timeout to prevent hanging
-    setTimeout(() => {
-      if (isRecording) {
-        stopRecording();
-        toast.info('Recording timed out. Try again.');
+  useEffect(() => {
+    return () => {
+      clearRecordingTimeout();
+      if (recognitionRef.current) {
+        manuallyStoppedRef.current = true;
+        recognitionRef.current.abort();
       }
-    }, 8000); // 8 second timeout
+    };
+  }, []);
 
-    recognitionRef.current.onstart = () => {
+  const startRecording = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast.error(
+        "Speech recognition not supported in this browser. Try using Chrome or Edge.",
+      );
+      return;
+    }
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then(() => {
+          initializeSpeechRecognition(SpeechRecognition);
+        })
+        .catch(() => {
+          toast.error(
+            "Microphone access denied. Please allow microphone access in your browser settings.",
+          );
+        });
+    } else {
+      initializeSpeechRecognition(SpeechRecognition);
+    }
+  };
+
+  const initializeSpeechRecognition = (SpeechRecognition) => {
+    clearRecordingTimeout();
+
+    if (recognitionRef.current) {
+      manuallyStoppedRef.current = true;
+      recognitionRef.current.abort();
+    }
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    manuallyStoppedRef.current = false;
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {
       setIsRecording(true);
-      toast.info('🎤 Listening... Speak your command now (8s timeout)');
+      toast.info("Listening... Speak your command now.");
+
+      timeoutRef.current = window.setTimeout(() => {
+        if (recognitionRef.current === recognition) {
+          manuallyStoppedRef.current = true;
+          recognition.stop();
+          toast.info("Recording timed out. Try again.");
+        }
+      }, 8000);
     };
 
-    recognitionRef.current.onresult = async (event) => {
-      const transcript = event.results[0][0].transcript;
-      console.log('Transcript:', transcript);
+    recognition.onresult = async (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript || "")
+        .join(" ")
+        .trim();
+
+      if (!transcript) {
+        toast.warning("No speech detected. Please try again.");
+        return;
+      }
+
+      console.log("Transcript:", transcript);
 
       if (onTranscript) {
         onTranscript(transcript);
@@ -59,26 +108,30 @@ const VoiceRecorder = ({ onTranscript, onCommandParsed, disabled }) => {
 
       // Send to backend for parsing
       if (onCommandParsed) {
+        setIsRecording(false);
         setIsProcessing(true);
         try {
-          console.log("before")
-          const { data } = await axios.post('/voice-command', {
+          const { data } = await axios.post("/voice-command", {
             voiceText: transcript,
           });
-console.log("after")
-console.log(data)
+
           if (data.success) {
-            toast.success('Voice command processed successfully!');
             onCommandParsed(data);
           } else {
-            toast.error(data.message || 'Failed to process voice command');
+            toast.error(data.message || "Failed to process voice command");
           }
         } catch (error) {
-          console.error('Voice command error:', error);
-          const message =
+          console.error("Voice command error:", error);
+          const isBackendOffline =
+            error?.code === "ERR_NETWORK" ||
+            error?.message === "Network Error" ||
+            !error?.response;
+          const message = isBackendOffline
+            ? "Backend is not running. Start the backend on port 5000 and try again."
+            :
             error?.response?.data?.message ||
             error.message ||
-            'Failed to process voice command';
+            "Failed to process voice command";
           toast.error(message);
         } finally {
           setIsProcessing(false);
@@ -86,47 +139,71 @@ console.log(data)
       }
     };
 
-    recognitionRef.current.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      clearRecordingTimeout();
       setIsRecording(false);
       setIsProcessing(false);
 
-      let errorMessage = 'Speech recognition failed';
+      if (event.error === "aborted" && manuallyStoppedRef.current) {
+        cleanupRecognition();
+        return;
+      }
+
+      let errorMessage = "Speech recognition failed";
       switch (event.error) {
-        case 'network':
-          errorMessage = 'Speech service unavailable: Google\'s speech recognition servers may be down or blocked. Try again later or use manual input.';
+        case "network":
+          errorMessage =
+            "Speech service unavailable. Try again later or use manual input.";
           break;
-        case 'not-allowed':
-          errorMessage = 'Microphone access denied. Please allow microphone access and try again';
+        case "not-allowed":
+          errorMessage =
+            "Microphone access denied. Please allow microphone access and try again.";
           break;
-        case 'no-speech':
-          errorMessage = 'No speech detected. Please speak clearly and try again';
+        case "no-speech":
+          errorMessage = "No speech detected. Please speak clearly and try again.";
           break;
-        case 'aborted':
-          errorMessage = 'Speech recognition was cancelled';
+        case "aborted":
+          errorMessage = "Speech recognition was cancelled.";
           break;
-        case 'audio-capture':
-          errorMessage = 'Microphone not found or not working';
+        case "audio-capture":
+          errorMessage = "Microphone not found or not working.";
           break;
-        case 'service-not-allowed':
-          errorMessage = 'Speech recognition service not allowed';
+        case "service-not-allowed":
+          errorMessage = "Speech recognition service not allowed.";
           break;
         default:
           errorMessage = `Speech recognition error: ${event.error}`;
       }
 
-      toast.error(errorMessage);
+      if (event.error === "no-speech") {
+        toast.warning(errorMessage);
+      } else {
+        toast.error(errorMessage);
+      }
     };
 
-    recognitionRef.current.onend = () => {
+    recognition.onend = () => {
+      clearRecordingTimeout();
       setIsRecording(false);
+      if (recognitionRef.current === recognition) {
+        cleanupRecognition();
+      }
     };
 
-    recognitionRef.current.start();
+    try {
+      recognition.start();
+    } catch {
+      cleanupRecognition();
+      setIsRecording(false);
+      toast.error("Could not start microphone. Please try again.");
+    }
   };
 
   const stopRecording = () => {
     if (recognitionRef.current) {
+      manuallyStoppedRef.current = true;
+      clearRecordingTimeout();
       recognitionRef.current.stop();
     }
   };
@@ -146,12 +223,18 @@ console.log(data)
       disabled={disabled || isProcessing}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border ${
         isRecording
-          ? 'border-emerald-400 bg-emerald-50 text-emerald-700 shadow-md scale-105'
+          ? "border-emerald-400 bg-emerald-50 text-emerald-700 shadow-md scale-105"
           : isProcessing
-          ? 'border-amber-300 bg-amber-50 text-amber-700 shadow-md'
-          : 'border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 shadow-sm'
-      } ${disabled || isProcessing ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-md'}`}
-      title={isRecording ? 'Stop recording' : isProcessing ? 'Processing...' : 'Speak your command'}
+            ? "border-amber-300 bg-amber-50 text-amber-700 shadow-md"
+            : "border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 shadow-sm"
+      } ${disabled || isProcessing ? "opacity-60 cursor-not-allowed" : "hover:shadow-md"}`}
+      title={
+        isRecording
+          ? "Stop recording"
+          : isProcessing
+            ? "Processing..."
+            : "Speak your command"
+      }
     >
       {isProcessing ? (
         <Loader className="w-4 h-4 animate-spin" />
@@ -161,7 +244,7 @@ console.log(data)
         <Mic className="w-4 h-4" />
       )}
       <span className="text-sm font-semibold">
-        {isProcessing ? 'Processing...' : isRecording ? 'Listening...' : 'Voice'}
+        {isProcessing ? "Processing..." : isRecording ? "Listening..." : "Voice"}
       </span>
     </button>
   );

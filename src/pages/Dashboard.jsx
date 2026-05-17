@@ -175,7 +175,9 @@ export default function Dashboard() {
           setWalletBalance(parsedBalance);
           const rawName = walletData?.userID?.userName || walletRes?.data?.userName;
           if (rawName) setUserName(rawName);
-        } catch {}
+        } catch {
+          // Wallet data is optional here; the rest of the dashboard can still load.
+        }
 
         const res = await axios.post("/viewExpenses", {}, config);
         let data = [];
@@ -203,11 +205,13 @@ export default function Dashboard() {
             const parts = token.split(".");
             if (parts.length >= 2) {
               const p = JSON.parse(atob(parts[1]));
-              const n = p.name || p.userName;
+              const n = p.name || p.userName || p.username;
               if (n) setUserName(n);
             }
           }
-        } catch {}
+        } catch {
+          // Ignore malformed token payloads and keep the existing display name.
+        }
       } catch {
         setServerOnline(false);
       }

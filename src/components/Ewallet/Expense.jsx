@@ -4,10 +4,11 @@ import { toast } from "react-toastify";
 import axios from "../../constants/api.js";
 import { getToken } from "../../constants/auth.js";
 import VoiceRecorder from "../VoiceInput/VoiceRecorder";
+import { validateTransactionForm } from "./transactionValidation.js";
 
 const API_URL = "/ExpenseMoney";
 
-export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
+export default function Expense({ show, onClose, onSaved, availableBalance }) {
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     amount: "",
@@ -17,6 +18,7 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
   });
 
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (show) {
@@ -24,59 +26,43 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
         ...s,
         date: new Date().toISOString().slice(0, 10),
       }));
+      setErrors({});
     }
   }, [show]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: "" }));
   };
 
   const handleSave = async (e, voiceFormData = null) => {
     e.preventDefault();
     const currentForm = voiceFormData || form;
+    const validation = validateTransactionForm(currentForm, "Expense", {
+      availableBalance,
+    });
 
-    if (!currentForm.amount) {
-      toast("Please enter an amount", { type: "error" });
+    if (!validation.isValid) {
+      setErrors(validation.errors);
+      toast.warning(Object.values(validation.errors)[0]);
       return;
     }
 
+    setErrors({});
     setLoading(true);
 
     try {
-      function toApiIso(dateStr) {
-        const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/;
-
-        if (typeof dateStr === "string" && isoDateOnly.test(dateStr)) {
-          const [y, m, d] = dateStr.split("-").map((n) => parseInt(n, 10));
-          return new Date(y, m - 1, d, 12, 0, 0).toISOString();
-        }
-
-        try {
-          return new Date(dateStr).toISOString();
-        } catch {
-          return dateStr;
-        }
-      }
-
-      const normalizeCategory = (val) => {
-        if (!val) return "";
-        const t = String(val).trim().toLowerCase();
-        return t ? t.charAt(0).toUpperCase() + t.slice(1) : "";
-      };
-
-      const isoDate = toApiIso(currentForm.date);
+      const { values } = validation;
 
       const payload = {
-        date: isoDate,
-        Date: isoDate,
-        amount:
-          parseFloat(currentForm.amount.toString().replace(/[^0-9.-]+/g, "")) ||
-          0,
-        category: normalizeCategory(currentForm.category),
-        account: currentForm.account,
-        note: currentForm.note,
-        description: currentForm.note ?? "",
+        date: values.isoDate,
+        Date: values.isoDate,
+        amount: values.amount,
+        category: values.category,
+        account: values.account,
+        note: values.note,
+        description: values.note,
         type: "Expense",
       };
 
@@ -118,7 +104,9 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
 
         try {
           if (typeof detail === "object") detail = JSON.stringify(detail);
-        } catch {}
+        } catch {
+          detail = "Unable to read error details";
+        }
 
         msg = `Request failed with status ${status}${
           detail ? ": " + detail : ""
@@ -134,6 +122,13 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
   };
 
   if (!show) return null;
+
+  const fieldClass = (field) =>
+    `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+      errors[field]
+        ? "border-red-400 bg-red-50 focus:ring-red-200"
+        : "border-gray-300 focus:ring-rose-500"
+    }`;
 
   return (
     <div className="modal-overlay">
@@ -157,20 +152,26 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
               const parsed = data?.voiceCommand?.parsedData || data?.parsedData;
 
               if (parsed) {
+                if (parsed.action && parsed.action !== "add_expense") {
+                  toast.warning(
+                    "This voice command is for income. Open Income to record it.",
+                  );
+                  return;
+                }
+
                 const updatedForm = {
                   ...form,
                   amount: parsed.amount?.toString() || form.amount,
-                  category: parsed.category || form.category,
+                  category: parsed.category?.trim() || form.category || "General",
                   note: parsed.description || form.note,
-                  account: parsed.account || form.account,
+                  account:
+                    parsed.account === "Bank" || parsed.account === "Cash"
+                      ? parsed.account
+                      : form.account,
                 };
 
                 setForm(updatedForm);
                 handleSave({ preventDefault: () => {} }, updatedForm);
-
-                toast.success(
-                  "Form auto-filled from voice command! Submitting...",
-                );
               }
             }}
             disabled={loading}
@@ -189,7 +190,9 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   name="date"
                   value={form.date}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  max={new Date().toISOString().slice(0, 10)}
+                  aria-invalid={Boolean(errors.date)}
+                  className={fieldClass("date")}
                 />
               </div>
 
@@ -203,7 +206,9 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   value={form.amount}
                   onChange={handleChange}
                   placeholder="Rs. 0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  inputMode="decimal"
+                  aria-invalid={Boolean(errors.amount)}
+                  className={fieldClass("amount")}
                 />
               </div>
             </div>
@@ -219,7 +224,9 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   value={form.category}
                   onChange={handleChange}
                   placeholder="e.g., Food, Travel"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  maxLength={40}
+                  aria-invalid={Boolean(errors.category)}
+                  className={fieldClass("category")}
                 />
               </div>
 
@@ -231,7 +238,8 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                   name="account"
                   value={form.account}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  aria-invalid={Boolean(errors.account)}
+                  className={`${fieldClass("account")} bg-white`}
                 >
                   <option value="Cash">Cash</option>
                   <option value="Bank">Bank</option>
@@ -249,8 +257,15 @@ export default function Expense({ show, onClose, onSaved, onOptimisticSave }) {
                 value={form.note}
                 onChange={handleChange}
                 placeholder="Add a note (optional)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                maxLength={160}
+                aria-invalid={Boolean(errors.note)}
+                className={fieldClass("note")}
               />
+              <div className="mt-1 flex justify-between gap-3 text-xs">
+                <span className="ml-auto text-gray-400">
+                  {form.note.length}/160
+                </span>
+              </div>
             </div>
           </div>
 

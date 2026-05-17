@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../constants/api.js";
-import { setAuth } from "../constants/auth";
+import { setAuth, setToken, setUserName } from "../constants/auth";
 
 export default function OtpVerification() {
   const navigate = useNavigate();
@@ -101,6 +101,30 @@ export default function OtpVerification() {
         setTimeout(() => navigate("/reset-password", { state: { email } }), 1500);
       } else {
         setAuth(true, true);
+        const token =
+          data?.token ||
+          data?.accessToken ||
+          data?.data?.token;
+        if (token) {
+          setToken(token, true);
+        }
+
+        const user = data?.user || data?.data?.user || data?.data || {};
+        const displayRaw =
+          user?.userName ||
+          user?.username ||
+          user?.name ||
+          user?.email ||
+          null;
+        if (displayRaw) {
+          const display =
+            typeof displayRaw === "string" && displayRaw.includes("@")
+              ? displayRaw.split("@")[0]
+              : displayRaw;
+          setUserName(display, true);
+        }
+
+        localStorage.removeItem("otpEmail");
         localStorage.removeItem("otpFlow");
         setTimeout(() => navigate("/dashboard"), 1500);
       }
@@ -130,7 +154,7 @@ export default function OtpVerification() {
     if (flow === "reset") {
       try {
         await axios.post("/forgetpassword", { email });
-      } catch (err) {
+      } catch {
         setError("Could not resend code. Please try again.");
       }
     }
